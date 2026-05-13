@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Rx</div>
+    <div>
+      <div class="app-title" id="app-title">Inventaire des Médicaments</div>
+      <div class="app-sub" id="app-sub">Gestion des stocks — Pharmacie</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="font-size:12px;color:var(--color-text-secondary,#6b6b67)" id="date-label"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Page tabs -->
+<div class="page-tabs">
+  <button class="page-tab active" id="tab-inv" onclick="showPage('inventory')">Inventaire</button>
+  <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
+</div>
+
+<!-- ══ INVENTORY PAGE ══ -->
+<div id="page-inventory">
+  <div class="sheet-bar">
+    <button class="file-btn" onclick="loadSheet()" id="charger-inv">Charger l'inventaire</button>
+  </div>
+  <div class="meta-bar" id="meta-bar" style="display:none">
+    <span class="category-badge" id="cat-badge">—</span>
+    <span id="meta-products"></span>
+    <span>·</span>
+    <span id="meta-updated"></span>
+  </div>
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card"><div class="stat-label" id="sl-total">Total produits</div><div class="stat-val ok" id="sv-total">—</div></div>
+    <div class="stat-card"><div class="stat-label" id="sl-low">Stock faible</div><div class="stat-val warn" id="sv-low">—</div></div>
+    <div class="stat-card"><div class="stat-label" id="sl-critical">Stock critique</div><div class="stat-val danger" id="sv-critical">—</div></div>
+  </div>
+  <div class="filter-bar" id="filter-bar" style="display:none">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Rechercher..."/>
+    </div>
+    <select class="filter-sel" id="stock-filter">
+      <option value="all" id="f-all">Tous les stocks</option>
+      <option value="ok"  id="f-ok">Stock OK</option>
+      <option value="low" id="f-low">Stock faible</option>
+      <option value="critical" id="f-critical">Stock critique</option>
+    </select>
+    <select class="filter-sel" id="family-filter">
+      <option value="all" id="f-fam-all">Toutes familles</option>
+    </select>
+    <select class="filter-sel" id="category-filter">
+      <option value="all" id="f-cat-all">Toutes catégories</option>
+    </select>
+  </div>
+  <div id="main-state">
+    <div class="state-box">
+      <div style="font-size:32px">📋</div>
+      <div id="state-msg">Cliquez sur "Charger l'inventaire" pour commencer.</div>
+    </div>
+  </div>
+  <div class="table-wrap" id="table-section" style="display:none">
+    <table id="inv-table">
+      <thead>
+        <tr>
+          <th data-col="code"        id="h-code">Code ↕</th>
+          <th data-col="product"     id="h-product">Produit ↕</th>
+          <th data-col="dose"        id="h-dose">Dose ↕</th>
+          <th data-col="format"      id="h-format">Fmt ↕</th>
+          <th data-col="dateExp"     id="h-dateExp">Exp. ↕</th>
+          <th data-col="stockInit"   id="h-stockInit">Init. ↕</th>
+          <th data-col="pa"          id="h-pa">PA ↕</th>
+          <th data-col="prixUnit"    id="h-prixUnit">Prix/u ↕</th>
+          <th data-col="sorties"     id="h-sorties">Sort. ↕</th>
+          <th data-col="change"      id="h-change">Chg ↕</th>
+          <th data-col="stockActuel" id="h-stockActuel">Stock act. ↕</th>
+          <th data-col="obs"         id="h-obs">Statut ↕</th>
+          <th data-col="consEstMo"   id="h-consEstMo">Cons/mo ↕</th>
+          <th data-col="moRest"      id="h-moRest">Mo rest. ↕</th>
+          <th data-col="quantMin"    id="h-quantMin">Q.min ↕</th>
+          <th data-col="valeur"      id="h-valeur">Valeur ↕</th>
+          <th data-col="etatsUnis"   id="h-etatsUnis">EU ↕</th>
+          <th data-col="essentiel"   id="h-essentiel">Essent. ↕</th>
+          <th data-col="famille"     id="h-famille">Famille ↕</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ DISPENSATION PAGE ══ -->
+<div id="page-dispensation" style="display:none">
+  <div class="disp-page">
+    <h2 id="disp-title">Dispensation des médicaments</h2>
+
+    <div id="disp-no-inv" class="no-inventory-notice" style="display:none">
+      ⚠️ <span id="disp-no-inv-msg">L'inventaire n'est pas encore chargé.</span>
+    </div>
+
+    <!-- Patient info -->
+    <div class="form-section">
+      <h3 id="disp-section-patient">Informations patient</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label id="lbl-dossier">N° Dossier</label>
+          <input type="text" id="inp-dossier" placeholder="Ex: 12345"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-date">Date</label>
+          <input type="date" id="inp-date"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-time">Heure</label>
+          <input type="time" id="inp-time"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medications -->
+    <div class="form-section">
+      <h3 id="disp-section-meds">Médicaments dispensés</h3>
+      <div id="med-rows"></div>
+      <button class="add-med-btn" onclick="addMedRow()" id="btn-add-med">+ Ajouter un médicament</button>
+    </div>
+
+    <!-- Total -->
+    <div class="total-section" id="total-section" style="display:none">
+      <h3 id="disp-section-total">Total</h3>
+      <div class="total-rows" id="total-rows"></div>
+    </div>
+
+    <button class="submit-btn" onclick="submitDispensation()" id="btn-submit">Soumettre</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="translations.js"></script>
+<script src="inventory.js"></script>
+<script src="dispensation.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
