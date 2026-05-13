@@ -1,5 +1,5 @@
 // ── Config ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGjrl_I-p8hM66xbCMMZPDwg9cD32aTjQ4iXnzgsroLvPsC6u9kOhTjeCwnDJNZd8oZA/exec';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function parsePrixUnit(raw) {
