@@ -68,7 +68,14 @@ var T = {
     toastSuccess:'Dispensation enregistrée avec succès.',
     toastError:"Erreur lors de l'envoi. Veuillez réessayer.",
     toastValidate:'Veuillez remplir tous les champs obligatoires.',
-    toastNoMeds:'Veuillez ajouter au moins un médicament.'
+    toastNoMeds:'Veuillez ajouter au moins un médicament.',
+
+    lblMedProduct: 'Produit',
+    lblMedDose:    'Dose',
+    lblMedFormat:  'Format',
+    selectMedProduct: '-- Produit --',
+    selectMedDose:    '-- Dose --',
+    selectMedFormat:  '-- Format --'
   },
 
   en: {
@@ -140,6 +147,13 @@ var T = {
     toastSuccess:'Dispensation recorded successfully.',
     toastError:'Error sending data. Please try again.',
     toastValidate:'Please fill in all required fields.',
-    toastNoMeds:'Please add at least one medication.'
+    toastNoMeds:'Please add at least one medication.',
+
+    lblMedProduct: 'Product',
+    lblMedDose:    'Dose',
+    lblMedFormat:  'Format',
+    selectMedProduct: '-- Product --',
+    selectMedDose:    '-- Dose --',
+    selectMedFormat:  '-- Format --'
   }
 };

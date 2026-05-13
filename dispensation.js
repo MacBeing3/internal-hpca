@@ -1,19 +1,18 @@
 // ── Config ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGjrl_I-p8hM66xbCMMZPDwg9cD32aTjQ4iXnzgsroLvPsC6u9kOhTjeCwnDJNZd8oZA/exec';
+var APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function getProductByLabel(label) {
-  for (var i = 0; i < products.length; i++) {
-    var p = products[i];
-    var l = p.product + (p.dose ? ' ' + p.dose : '') + (p.format ? ' (' + p.format + ')' : '');
-    if (l === label) return p;
-  }
-  return null;
-}
-
 function parsePrixUnit(raw) {
   var n = parseFloat((raw || '').toString().replace(/[^0-9.,]/g, '').replace(',', '.'));
   return isNaN(n) ? null : n;
+}
+
+function getProductByPDF(product, dose, format) {
+  for (var i = 0; i < products.length; i++) {
+    var p = products[i];
+    if (p.product === product && p.dose === dose && p.format === format) return p;
+  }
+  return null;
 }
 
 // ── Total section ─────────────────────────────────────────────────────────────
@@ -25,20 +24,27 @@ function updateTotal() {
   var hasPrice  = false;
 
   for (var i = 0; i < medRows.length; i++) {
-    var sel     = medRows[i].querySelector('.med-select');
+    var selProd = medRows[i].querySelector('.sel-product');
+    var selDose = medRows[i].querySelector('.sel-dose');
+    var selFmt  = medRows[i].querySelector('.sel-format');
     var qty     = medRows[i].querySelector('.med-qty');
-    if (!sel || !sel.value) continue;
-    var p        = getProductByLabel(sel.value);
-    var rawPrice = p ? p.prixUnit || '' : '';
-    var unitVal  = parsePrixUnit(rawPrice);
-    var qtyVal   = parseInt(qty.value) || 0;
+    if (!selProd || !selProd.value) continue;
+
+    var p         = getProductByPDF(selProd.value, selDose ? selDose.value : '', selFmt ? selFmt.value : '');
+    var rawPrice  = p ? p.prixUnit || '' : '';
+    var unitVal   = parsePrixUnit(rawPrice);
+    var qtyVal    = parseInt(qty.value) || 0;
+    var label     = selProd.value +
+                    (selDose && selDose.value ? ' ' + selDose.value : '') +
+                    (selFmt  && selFmt.value  ? ' (' + selFmt.value + ')' : '');
+
     if (unitVal !== null) {
       var lineTotal = unitVal * qtyVal;
       grand += lineTotal;
       hasPrice = true;
-      lines.push({ name: sel.value, qty: qtyVal, total: lineTotal });
+      lines.push({ name: label, qty: qtyVal, total: lineTotal });
     } else {
-      lines.push({ name: sel.value, qty: qtyVal, total: null });
+      lines.push({ name: label, qty: qtyVal, total: null });
     }
   }
 
@@ -63,16 +69,23 @@ function updateTotal() {
 }
 
 // ── Med row builder ───────────────────────────────────────────────────────────
-function populateMedSelect(sel) {
-  var current = sel.value;
-  while (sel.options.length > 1) sel.remove(1);
-  products.forEach(function(p) {
-    var label = p.product + (p.dose ? ' ' + p.dose : '') + (p.format ? ' (' + p.format + ')' : '');
-    var o = document.createElement('option');
-    o.value = label; o.textContent = label;
-    sel.appendChild(o);
-  });
-  if (current) sel.value = current;
+function makeSelGroup(labelText, cls, placeholder) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px';
+
+  var lbl = document.createElement('label');
+  lbl.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
+  lbl.textContent = labelText;
+
+  var sel = document.createElement('select');
+  sel.className = 'med-select ' + cls;
+  var def = document.createElement('option');
+  def.value = ''; def.textContent = placeholder;
+  sel.appendChild(def);
+
+  wrap.appendChild(lbl);
+  wrap.appendChild(sel);
+  return { wrap: wrap, sel: sel, lbl: lbl };
 }
 
 function addMedRow() {
@@ -80,52 +93,107 @@ function addMedRow() {
   var div = document.createElement('div');
   div.className = 'med-row';
 
-  // Medication select
-  var selWrap = document.createElement('div');
-  selWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:2;min-width:160px';
-  var selLabel = document.createElement('label');
-  selLabel.className = 'med-lbl-med';
-  selLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
-  selLabel.textContent = tr('lblMed');
-  var sel = document.createElement('select');
-  sel.className = 'med-select';
-  var defaultOpt = document.createElement('option');
-  defaultOpt.value = ''; defaultOpt.textContent = tr('selectMed');
-  sel.appendChild(defaultOpt);
-  populateMedSelect(sel);
-  selWrap.appendChild(selLabel);
-  selWrap.appendChild(sel);
+  // ── Three cascading selects ──
+  var prod = makeSelGroup(tr('lblMedProduct'), 'sel-product', tr('selectMedProduct'));
+  var dose = makeSelGroup(tr('lblMedDose'),    'sel-dose',    tr('selectMedDose'));
+  var fmt  = makeSelGroup(tr('lblMedFormat'),  'sel-format',  tr('selectMedFormat'));
 
-  // Quantity
+  dose.sel.disabled = true;
+  fmt.sel.disabled  = true;
+
+  // Populate product names (sorted, unique)
+  var productNames = [];
+  products.forEach(function(p) {
+    if (productNames.indexOf(p.product) === -1) productNames.push(p.product);
+  });
+  productNames.sort().forEach(function(name) {
+    var o = document.createElement('option'); o.value = name; o.textContent = name;
+    prod.sel.appendChild(o);
+  });
+
+  // Unit price tag
+  var priceTag = document.createElement('span');
+  priceTag.className = 'unit-price-tag';
+
+  // Product → populate doses
+  prod.sel.addEventListener('change', function() {
+    // reset dose & format
+    dose.sel.innerHTML = ''; fmt.sel.innerHTML = '';
+    var defD = document.createElement('option'); defD.value = ''; defD.textContent = tr('selectMedDose'); dose.sel.appendChild(defD);
+    var defF = document.createElement('option'); defF.value = ''; defF.textContent = tr('selectMedFormat'); fmt.sel.appendChild(defF);
+    dose.sel.disabled = !prod.sel.value;
+    fmt.sel.disabled  = true;
+    priceTag.textContent = '';
+    if (!prod.sel.value) { updateTotal(); return; }
+
+    var doses = [];
+    products.forEach(function(p) {
+      if (p.product === prod.sel.value && doses.indexOf(p.dose) === -1) doses.push(p.dose);
+    });
+    doses.forEach(function(d) {
+      var o = document.createElement('option'); o.value = d; o.textContent = d || '—'; dose.sel.appendChild(o);
+    });
+    // auto-select if only one option
+    if (doses.length === 1) { dose.sel.value = doses[0]; dose.sel.dispatchEvent(new Event('change')); }
+    else updateTotal();
+  });
+
+  // Dose → populate formats
+  dose.sel.addEventListener('change', function() {
+    fmt.sel.innerHTML = '';
+    var defF = document.createElement('option'); defF.value = ''; defF.textContent = tr('selectMedFormat'); fmt.sel.appendChild(defF);
+    fmt.sel.disabled = !dose.sel.value;
+    priceTag.textContent = '';
+    if (!dose.sel.value) { updateTotal(); return; }
+
+    var fmts = [];
+    products.forEach(function(p) {
+      if (p.product === prod.sel.value && p.dose === dose.sel.value && fmts.indexOf(p.format) === -1) fmts.push(p.format);
+    });
+    fmts.forEach(function(f) {
+      var o = document.createElement('option'); o.value = f; o.textContent = f || '—'; fmt.sel.appendChild(o);
+    });
+    // auto-select if only one option
+    if (fmts.length === 1) { fmt.sel.value = fmts[0]; fmt.sel.dispatchEvent(new Event('change')); }
+    else updateTotal();
+  });
+
+  // Format → show price
+  fmt.sel.addEventListener('change', function() {
+    var p   = getProductByPDF(prod.sel.value, dose.sel.value, fmt.sel.value);
+    var raw = p ? p.prixUnit || '' : '';
+    priceTag.textContent = raw ? tr('lblUnitPrice') + ' ' + raw : '';
+    updateTotal();
+  });
+
+  // ── Quantity ──
   var qtyWrap = document.createElement('div');
-  qtyWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:0 0 80px';
+  qtyWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:0 0 72px';
   var qtyLabel = document.createElement('label');
   qtyLabel.className = 'med-lbl-qty';
   qtyLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
   qtyLabel.textContent = tr('lblQty');
   var qty = document.createElement('input');
   qty.type = 'number'; qty.min = '1'; qty.value = '1'; qty.className = 'med-qty';
+  qty.style.cssText = 'padding:6px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);font-size:12px;font-family:inherit;width:100%';
+  qty.addEventListener('change', updateTotal);
   qtyWrap.appendChild(qtyLabel);
   qtyWrap.appendChild(qty);
 
-  // Unit price display
-  var priceTag = document.createElement('span');
-  priceTag.className = 'unit-price-tag';
-
-  // Forfaitaire
+  // ── Forfaitaire ──
   var forfaitWrap = document.createElement('div');
   forfaitWrap.className = 'forfait-wrap';
-  forfaitWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;align-items:center';
+  forfaitWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;align-items:center;flex:0 0 auto';
   var forfaitLabel = document.createElement('label');
   forfaitLabel.className = 'med-lbl-forfait';
   forfaitLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
   forfaitLabel.textContent = tr('lblForfait');
   var forfait = document.createElement('input');
-  forfait.type = 'checkbox'; forfait.className = 'med-forfait';
+  forfait.type = 'checkbox'; forfait.className = 'med-forfait'; forfait.style.accentColor = '#185FA5';
   forfaitWrap.appendChild(forfaitLabel);
   forfaitWrap.appendChild(forfait);
 
-  // Remove button
+  // ── Remove button ──
   var removeBtn = document.createElement('button');
   removeBtn.className = 'remove-btn';
   removeBtn.textContent = '×';
@@ -133,16 +201,9 @@ function addMedRow() {
     if (container.children.length > 1) { container.removeChild(div); updateTotal(); }
   };
 
-  // Events
-  sel.addEventListener('change', function() {
-    var p   = getProductByLabel(sel.value);
-    var raw = p ? p.prixUnit || '' : '';
-    priceTag.textContent = raw ? tr('lblUnitPrice') + ' ' + raw : '';
-    updateTotal();
-  });
-  qty.addEventListener('change', updateTotal);
-
-  div.appendChild(selWrap);
+  div.appendChild(prod.wrap);
+  div.appendChild(dose.wrap);
+  div.appendChild(fmt.wrap);
   div.appendChild(qtyWrap);
   div.appendChild(priceTag);
   div.appendChild(forfaitWrap);
@@ -179,22 +240,23 @@ function submitDispensation() {
   var rows  = [];
   var valid = true;
   for (var i = 0; i < medRows.length; i++) {
-    var sel     = medRows[i].querySelector('.med-select');
+    var selProd = medRows[i].querySelector('.sel-product');
+    var selDose = medRows[i].querySelector('.sel-dose');
+    var selFmt  = medRows[i].querySelector('.sel-format');
     var qty     = medRows[i].querySelector('.med-qty');
     var forfait = medRows[i].querySelector('.med-forfait');
-    if (!sel.value) { valid = false; break; }
+    if (!selProd || !selProd.value) { valid = false; break; }
 
-    var p         = getProductByLabel(sel.value);
-    var product   = p ? p.product  : sel.value;
-    var dose      = p ? p.dose     : '';
-    var format    = p ? p.format   : '';
+    var p         = getProductByPDF(selProd.value, selDose.value, selFmt.value);
     var unitVal   = parsePrixUnit(p ? p.prixUnit : '');
     var qtyVal    = parseInt(qty.value) || 0;
     var lineTotal = unitVal !== null ? unitVal * qtyVal : '';
 
     rows.push([
       dossier, date, time,
-      product, dose, format,
+      selProd.value,
+      selDose.value,
+      selFmt.value,
       unitVal !== null ? unitVal : '',
       qtyVal,
       lineTotal,
@@ -206,7 +268,6 @@ function submitDispensation() {
 
   var btn = document.getElementById('btn-submit');
   btn.disabled = true;
-
   fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(rows) })
     .then(function(res) { return res.json(); })
     .then(function(data) {
