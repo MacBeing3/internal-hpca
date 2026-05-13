@@ -66,7 +66,7 @@ select.filter-sel{padding:6px 10px;border:0.5px solid var(--color-border-seconda
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Dispensation page ── */
-.disp-page{padding:24px 20px;max-width:780px}
+.disp-page{padding:24px 20px;max-width:1000px}
 .disp-page h2{font-size:15px;font-weight:500;margin-bottom:18px;color:var(--color-text-primary,#1a1a18)}
 .form-section{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.15));border-radius:8px;padding:16px 18px;margin-bottom:16px}
 .form-section h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary,#6b6b67);margin-bottom:12px}
@@ -76,9 +76,9 @@ select.filter-sel{padding:6px 10px;border:0.5px solid var(--color-border-seconda
 .form-group label{font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)}
 .form-group input,.form-group select{padding:7px 10px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#1a1a18);font-size:12px;font-family:inherit}
 .form-group input:focus,.form-group select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
-.med-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--color-background-secondary,#f0efe8);border-radius:6px;margin-bottom:8px;flex-wrap:wrap}
+.med-row{display:flex;align-items:flex-end;gap:12px;padding:10px 12px;background:var(--color-background-secondary,#f0efe8);border-radius:6px;margin-bottom:8px;flex-wrap:wrap}
 .med-row select{flex:2;min-width:160px;padding:6px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#1a1a18);font-size:12px;font-family:inherit}
-.med-row input[type=number]{flex:0 0 72px;padding:6px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#1a1a18);font-size:12px;font-family:inherit}
+.med-row input[type=number]{flex:0 0 72px;padding:16px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#1a1a18);font-size:12px;font-family:inherit}
 .med-row input[type=number]:focus,.med-row select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
 .forfait-wrap{display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap;flex:0 0 auto}
 .forfait-wrap input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#185FA5}

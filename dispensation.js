@@ -1,5 +1,5 @@
 // ── Config ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGjrl_I-p8hM66xbCMMZPDwg9cD32aTjQ4iXnzgsroLvPsC6u9kOhTjeCwnDJNZd8oZA/exec';
+var APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function parsePrixUnit(raw) {
@@ -71,7 +71,7 @@ function updateTotal() {
 // ── Med row builder ───────────────────────────────────────────────────────────
 function makeSelGroup(labelText, cls, placeholder) {
   var wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px';
+  wrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px;max-width:200px';
 
   var lbl = document.createElement('label');
   lbl.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
@@ -92,6 +92,7 @@ function addMedRow() {
   var container = document.getElementById('med-rows');
   var div = document.createElement('div');
   div.className = 'med-row';
+  div.style.alignItems = 'flex-end';
 
   // ── Three cascading selects ──
   var prod = makeSelGroup(tr('lblMedProduct'), 'sel-product', tr('selectMedProduct'));
@@ -168,14 +169,14 @@ function addMedRow() {
 
   // ── Quantity ──
   var qtyWrap = document.createElement('div');
-  qtyWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:0 0 72px';
+  qtyWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;flex:0 0 60px';
   var qtyLabel = document.createElement('label');
   qtyLabel.className = 'med-lbl-qty';
   qtyLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
   qtyLabel.textContent = tr('lblQty');
   var qty = document.createElement('input');
   qty.type = 'number'; qty.min = '1'; qty.value = '1'; qty.className = 'med-qty';
-  qty.style.cssText = 'padding:6px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);font-size:12px;font-family:inherit;width:100%';
+  qty.style.cssText = 'padding:6px 4px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);font-size:12px;font-family:inherit;width:100%';
   qty.addEventListener('change', updateTotal);
   qtyWrap.appendChild(qtyLabel);
   qtyWrap.appendChild(qty);
