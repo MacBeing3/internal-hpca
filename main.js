@@ -21,6 +21,7 @@ function setLang(l) {
   // Tabs
   document.getElementById('tab-inv').textContent  = tr('tabInv');
   document.getElementById('tab-disp').textContent = tr('tabDisp');
+  document.getElementById('tab-hist').textContent = tr('tabHist');
 
   // Inventory stats
   document.getElementById('sl-total').textContent    = tr('slTotal');
@@ -60,7 +61,17 @@ function setLang(l) {
   document.getElementById('btn-submit').textContent           = tr('btnSubmit');
   document.getElementById('disp-no-inv-msg').textContent      = tr('noInvMsg');
 
-  // Existing med row labels
+  document.getElementById('btn-load-hist').textContent       = tr('btnLoadHist');
+  document.getElementById('hist-state-msg').textContent      = tr('histStatePrompt');
+  document.getElementById('lbl-hist-from').textContent       = tr('lblHistFrom');
+  document.getElementById('lbl-hist-to').textContent         = tr('lblHistTo');
+  document.getElementById('btn-hist-clear').textContent      = tr('btnHistClear');
+  document.getElementById('hist-search-dossier').placeholder = tr('histSearchPlaceholder');
+  var histCols = ['Dossier','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
+  histCols.forEach(function(c) {
+    var el = document.getElementById('hh-' + c.toLowerCase());
+    if (el) el.childNodes[0].textContent = tr('hh' + c) + ' ';
+  });
   document.querySelectorAll('.med-lbl-med').forEach(function(el)    { el.textContent = tr('lblMed'); });
   document.querySelectorAll('.med-lbl-qty').forEach(function(el)    { el.textContent = tr('lblQty'); });
   document.querySelectorAll('.med-lbl-forfait').forEach(function(el){ el.textContent = tr('lblForfait'); });
@@ -80,8 +91,10 @@ function showPage(page) {
   currentPage = page;
   document.getElementById('page-inventory').style.display    = page === 'inventory'    ? 'block' : 'none';
   document.getElementById('page-dispensation').style.display = page === 'dispensation' ? 'block' : 'none';
+  document.getElementById('page-historique').style.display   = page === 'historique'   ? 'block' : 'none';
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
+  document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
     if (document.getElementById('med-rows').children.length === 0) addMedRow();

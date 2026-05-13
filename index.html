@@ -29,6 +29,8 @@
 <div class="page-tabs">
   <button class="page-tab active" id="tab-inv" onclick="showPage('inventory')">Inventaire</button>
   <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
+  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Dispensation</button>
+
 </div>
 
 <!-- ══ INVENTORY PAGE ══ -->
@@ -146,12 +148,81 @@
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ══ HISTORIQUE PAGE ══ -->
+<div id="page-historique" style="display:none">
+  <div class="sheet-bar">
+    <button class="file-btn" onclick="loadHistorique()" id="btn-load-hist">Charger l'historique</button>
+  </div>
+
+  <div class="filter-bar" id="hist-filter-bar" style="display:none">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="hist-search-dossier" placeholder="Filtrer par dossier..."/>
+    </div>
+    <div class="form-group" style="flex:0 0 auto;flex-direction:row;align-items:center;gap:6px;padding-bottom:4px">
+      <label id="lbl-hist-from" style="font-size:12px;white-space:nowrap">Du :</label>
+      <input type="date" id="hist-date-from" style="padding:5px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;font-size:12px;font-family:inherit;background:var(--color-background-primary,#fff)"/>
+    </div>
+    <div class="form-group" style="flex:0 0 auto;flex-direction:row;align-items:center;gap:6px;padding-bottom:4px">
+      <label id="lbl-hist-to" style="font-size:12px;white-space:nowrap">Au :</label>
+      <input type="date" id="hist-date-to" style="padding:5px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;font-size:12px;font-family:inherit;background:var(--color-background-primary,#fff)"/>
+    </div>
+    <button class="file-btn" onclick="clearHistFilters()" id="btn-hist-clear" style="padding:5px 12px;font-size:11px">✕ Réinitialiser</button>
+  </div>
+
+  <div id="hist-state">
+    <div class="state-box">
+      <div style="font-size:32px">📋</div>
+      <div id="hist-state-msg">Cliquez sur "Charger l'historique" pour commencer.</div>
+    </div>
+  </div>
+
+  <div class="table-wrap" id="hist-table-section" style="display:none">
+    <table id="hist-table" style="table-layout:auto">
+      <thead>
+        <tr>
+          <th id="hh-dossier"   data-col="dossier">Dossier ↕</th>
+          <th id="hh-date"      data-col="date">Date ↕</th>
+          <th id="hh-time"      data-col="time">Heure ↕</th>
+          <th id="hh-product"   data-col="product">Produit ↕</th>
+          <th id="hh-dose"      data-col="dose">Dose ↕</th>
+          <th id="hh-format"    data-col="format">Format ↕</th>
+          <th id="hh-unitprice" data-col="unitPrice">Prix/u ↕</th>
+          <th id="hh-qty"       data-col="qty">Qté ↕</th>
+          <th id="hh-total"     data-col="lineTotal">Total ↕</th>
+          <th id="hh-forfait"   data-col="forfait">Forfaitaire ↕</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="hist-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--color-background-primary,#fff);border-radius:10px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+    <div style="font-size:24px;margin-bottom:10px">⚠️</div>
+    <div style="font-weight:600;font-size:14px;margin-bottom:8px" id="modal-title">Confirmer la suppression</div>
+    <div style="font-size:12px;color:var(--color-text-secondary,#6b6b67);margin-bottom:18px;line-height:1.6" id="modal-body"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeDeleteModal()" id="modal-btn-cancel"
+        style="padding:7px 16px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:transparent;font-size:12px;cursor:pointer">
+        Annuler
+      </button>
+      <button onclick="confirmDelete()" id="modal-btn-confirm"
+        style="padding:7px 16px;border:none;border-radius:6px;background:#A32D2D;color:#fff;font-size:12px;font-weight:500;cursor:pointer">
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="translations.js"></script>
 <script src="inventory.js"></script>
 <script src="dispensation.js"></script>
+<script src="historique.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
