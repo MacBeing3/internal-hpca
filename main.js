@@ -88,6 +88,7 @@ function setLang(l) {
 
 // ── Page navigation ───────────────────────────────────────────────────────────
 function showPage(page) {
+
   currentPage = page;
   document.getElementById('page-inventory').style.display    = page === 'inventory'    ? 'block' : 'none';
   document.getElementById('page-dispensation').style.display = page === 'dispensation' ? 'block' : 'none';
@@ -97,8 +98,9 @@ function showPage(page) {
   document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
-    if (document.getElementById('med-rows').children.length === 0) addMedRow();
+    if (document.getElementById('med-rows').children.length === 0 && namedRows!=[]) addMedRow();
   }
+
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
@@ -121,3 +123,5 @@ document.getElementById('date-label').textContent =
   new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 setDefaultDateTime();
 setLang('fr');
+loadInventory();
+loadHistorique();

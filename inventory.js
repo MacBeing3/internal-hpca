@@ -9,7 +9,7 @@ var sortCol  = null;
 var sortDir  = 1;
 
 // ── Load ─────────────────────────────────────────────────────────────────────
-function loadSheet() {
+function loadInventory() {
   var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
             '/values/' + SHEET_TAB + '!A:T?key=' + API_KEY;
   showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');

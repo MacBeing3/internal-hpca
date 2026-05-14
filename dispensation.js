@@ -1,5 +1,5 @@
 // ── Config ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGjrl_I-p8hM66xbCMMZPDwg9cD32aTjQ4iXnzgsroLvPsC6u9kOhTjeCwnDJNZd8oZA/exec';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function parsePrixUnit(raw) {
@@ -269,7 +269,10 @@ function submitDispensation() {
 
   var btn = document.getElementById('btn-submit');
   btn.disabled = true;
-  fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(rows) })
+    fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'append', rows:rows })
+  })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.status === 'ok') {
@@ -288,4 +291,7 @@ function submitDispensation() {
       showToast(tr('toastError'), 'error');
       btn.disabled = false;
     });
+
+  loadInventory()
+  loadHistorique()
 }

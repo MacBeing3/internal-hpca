@@ -163,6 +163,7 @@ function confirmDelete() {
     if (data.status === 'ok') {
       showToast(tr('toastDeleted'), 'success');
       loadHistorique(); // reload to reflect deletion
+      loadInventory();
     } else {
       showToast(tr('toastDeleteError'), 'error');
     }
