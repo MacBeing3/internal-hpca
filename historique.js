@@ -117,11 +117,6 @@ function renderHistorique() {
       '<td class="num-cell">'   + fmt(r.qty)        + '</td>' +
       '<td class="num-cell">'   + (r.lineTotal ? Number(r.lineTotal).toLocaleString() + ' FCFA' : '—') + '</td>' +
       '<td style="text-align:center">' + forfaitBadge + '</td>' +
-      '<td style="text-align:center">' +
-        '<button class="remove-btn" onclick="requestDelete(' + r.rowIndex + ',\'' +
-          escapeAttr(r.dossier) + '\',\'' + escapeAttr(r.date) + '\',\'' +
-          escapeAttr(r.product) + '\',\'' + escapeAttr(r.dose) + '\')" title="' + tr('modalConfirm') + '">×</button>' +
-      '</td>' +
     '</tr>';
   });
 
@@ -132,6 +127,8 @@ function renderHistorique() {
 
 function escapeAttr(s) { return (s || '').replace(/'/g, "\\'"); }
 
+
+//#deprecated, never called#
 // ── Delete flow ───────────────────────────────────────────────────────────────
 function requestDelete(rowIndex, dossier, date, product, dose) {
   pendingDelete = rowIndex;
@@ -147,11 +144,13 @@ function requestDelete(rowIndex, dossier, date, product, dose) {
   document.getElementById('delete-modal').style.display = 'flex';
 }
 
+//#deprecated, never called#
 function closeDeleteModal() {
   pendingDelete = null;
   document.getElementById('delete-modal').style.display = 'none';
 }
 
+//#deprecated, never called#
 function confirmDelete() {
   if (pendingDelete === null) return;
   var rowIndex = pendingDelete;

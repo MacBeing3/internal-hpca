@@ -28,6 +28,8 @@ function updateTotal() {
     var selDose = medRows[i].querySelector('.sel-dose');
     var selFmt  = medRows[i].querySelector('.sel-format');
     var qty     = medRows[i].querySelector('.med-qty');
+    var forf    = medRows[i].querySelector('.med-forfait');
+
     if (!selProd || !selProd.value) continue;
 
     var p         = getProductByPDF(selProd.value, selDose ? selDose.value : '', selFmt ? selFmt.value : '');
@@ -40,6 +42,7 @@ function updateTotal() {
 
     if (unitVal !== null) {
       var lineTotal = unitVal * qtyVal;
+      if(forf.checked){lineTotal=0;}
       grand += lineTotal;
       hasPrice = true;
       lines.push({ name: label, qty: qtyVal, total: lineTotal });
@@ -191,6 +194,7 @@ function addMedRow() {
   forfaitLabel.textContent = tr('lblForfait');
   var forfait = document.createElement('input');
   forfait.type = 'checkbox'; forfait.className = 'med-forfait'; forfait.style.accentColor = '#185FA5';
+  forfait.addEventListener('change',updateTotal)
   forfaitWrap.appendChild(forfaitLabel);
   forfaitWrap.appendChild(forfait);
 
@@ -245,7 +249,7 @@ function submitDispensation() {
     var selDose = medRows[i].querySelector('.sel-dose');
     var selFmt  = medRows[i].querySelector('.sel-format');
     var qty     = medRows[i].querySelector('.med-qty');
-    var forfait = medRows[i].querySelector('.med-forfait');
+    var forfait = medRows[i].querySelector('.med-forfait'); 
     if (!selProd || !selProd.value) { valid = false; break; }
 
     var p         = getProductByPDF(selProd.value, selDose.value, selFmt.value);
