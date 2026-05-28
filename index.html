@@ -3,9 +3,21 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+
+<div id="auth-overlay" style="position:fixed;inset:0;background:#f5f5f3;z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div class="logo" style="width:48px;height:48px;font-size:22px">Rx</div>
+  <div style="font-size:15px;font-weight:500">Inventaire des Médicaments</div>
+  <div style="font-size:12px;color:#6b6b67">Connectez-vous pour continuer</div>
+  <div id="g-signin-btn"></div>
+  <div id="auth-error" style="font-size:12px;color:#A32D2D;display:none">
+    Accès refusé. Votre compte n'est pas autorisé.
+  </div>
+</div>
 
 <!-- Top bar -->
 <div class="topbar">
@@ -17,6 +29,16 @@
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <!-- inside the topbar right-side div, before lang-toggle -->
+    <div id="user-info" style="display:flex;align-items:center;gap:8px;font-size:12px">
+      <img id="user-avatar" style="width:24px;height:24px;border-radius:50%;display:none"/>
+      <span id="user-email" style="color:var(--color-text-secondary,#6b6b67)"></span>
+      <button onclick="signOut()" id="btn-signout"
+        style="padding:4px 10px;border:0.5px solid rgba(0,0,0,.3);border-radius:6px;
+        background:transparent;font-size:11px;cursor:pointer;display:none">
+        Déconnexion
+      </button>
+    </div>
     <div style="font-size:12px;color:var(--color-text-secondary,#6b6b67)" id="date-label"></div>
     <div class="lang-toggle">
       <button class="lang-btn active" onclick="setLang('fr')">FR</button>
@@ -118,7 +140,7 @@
       <div class="form-row">
         <div class="form-group">
           <label id="lbl-dossier">N° Dossier</label>
-          <input type="text" id="inp-dossier" placeholder="Ex: 12345"/>
+          <input type="number" min="0" step="1" id="inp-dossier" placeholder="Ex: 12345"/>
         </div>
         <div class="form-group">
           <label id="lbl-date">Date</label>
@@ -219,6 +241,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="auth.js"></script>
 <script src="translations.js"></script>
 <script src="inventory.js"></script>
 <script src="dispensation.js"></script>

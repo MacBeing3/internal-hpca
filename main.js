@@ -123,5 +123,3 @@ document.getElementById('date-label').textContent =
   new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 setDefaultDateTime();
 setLang('fr');
-loadInventory();
-loadHistorique();

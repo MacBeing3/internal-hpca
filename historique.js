@@ -11,50 +11,53 @@ var pendingDelete  = null; // {rowIndex, display}
 // ── Load ──────────────────────────────────────────────────────────────────────
 function loadHistorique() {
   var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
-            '/values/' + DISP_SHEET_TAB + '?key=' + API_KEY;
+            '/values/' + DISP_SHEET_TAB;
   histShowState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
   document.getElementById('hist-table-section').style.display = 'none';
   document.getElementById('hist-filter-bar').style.display    = 'none';
 
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      var values = data.values || [];
-      // skip header row if present
-      var isHeader = function(r) {
-        return (r[0] || '').toLowerCase().includes('dossier') ||
-               (r[3] || '').toLowerCase().includes('produit') ||
-               (r[3] || '').toLowerCase().includes('product');
-      };
-      var dataRows = values.filter(function(r) { return r.length >= 4 && !isHeader(r); });
-      if (!dataRows.length) {
-        histShowState('<div style="font-size:32px">⚠️</div><div>' + tr('histErrEmpty') + '</div>');
-        return;
-      }
-      // rowIndex = 1-based sheet row (account for possible header row)
-      var offset = isHeader(values[0]) ? 2 : 1;
-      histRows = dataRows.map(function(r, i) {
-        return {
-          rowIndex:  i + offset,
-          dossier:   (r[0] || '').trim(),
-          date:      (r[1] || '').trim(),
-          time:      (r[2] || '').trim(),
-          product:   (r[3] || '').trim(),
-          dose:      (r[4] || '').trim(),
-          format:    (r[5] || '').trim(),
-          unitPrice: (r[6] || '').trim(),
-          qty:       (r[7] || '').trim(),
-          lineTotal: (r[8] || '').trim(),
-          forfait:   (r[9] || '').trim()
-        };
+  ensureFreshToken(function () {
+    authFetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+
+            var values = data.values || [];
+            // skip header row if present
+            var isHeader = function(r) {
+              return (r[0] || '').toLowerCase().includes('dossier') ||
+                    (r[3] || '').toLowerCase().includes('produit') ||
+                    (r[3] || '').toLowerCase().includes('product');
+            };
+            var dataRows = values.filter(function(r) { return r.length >= 4 && !isHeader(r); });
+            if (!dataRows.length) {
+              histShowState('<div style="font-size:32px">⚠️</div><div>' + tr('histErrEmpty') + '</div>');
+              return;
+            }
+            // rowIndex = 1-based sheet row (account for possible header row)
+            var offset = isHeader(values[0]) ? 2 : 1;
+            histRows = dataRows.map(function(r, i) {
+              return {
+                rowIndex:  i + offset,
+                dossier:   (r[0] || '').trim(),
+                date:      (r[1] || '').trim(),
+                time:      (r[2] || '').trim(),
+                product:   (r[3] || '').trim(),
+                dose:      (r[4] || '').trim(),
+                format:    (r[5] || '').trim(),
+                unitPrice: (r[6] || '').trim(),
+                qty:       (r[7] || '').trim(),
+                lineTotal: (r[8] || '').trim(),
+                forfait:   (r[9] || '').trim()
+              };
+            });
+            document.getElementById('hist-filter-bar').style.display = 'flex';
+            histShowTable();
+            renderHistorique();
+          })
+        })
+      .catch(function () {
+        histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
       });
-      document.getElementById('hist-filter-bar').style.display = 'flex';
-      histShowTable();
-      renderHistorique();
-    })
-    .catch(function() {
-      histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
-    });
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────

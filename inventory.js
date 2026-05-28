@@ -1,30 +1,32 @@
 // ── Config ──────────────────────────────────────────────────────────────────
 var SHEET_ID  = '1Ey8cGl4y0UvxGx7N3Wy9dvrM4E1PYTnaTbGKd9t-73w';
 var SHEET_TAB = 'Pharmacie';
-var API_KEY   = 'AIzaSyB_uROvkIGtYfjLclDRcsKftjpyJOf9COs';
 
 // ── State ────────────────────────────────────────────────────────────────────
 var products = [];
 var sortCol  = null;
 var sortDir  = 1;
 
-// ── Load ─────────────────────────────────────────────────────────────────────
+
 function loadInventory() {
   var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
-            '/values/' + SHEET_TAB + '!A:T?key=' + API_KEY;
+            '/values/' + SHEET_TAB + '!A:T';
   showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
   hideAll();
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      var dataRows = (data.values || []).filter(function(r) {
-        return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
+
+  ensureFreshToken(function () {
+    authFetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var dataRows = (data.values || []).filter(function (r) {
+          return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
+        });
+        processRows(dataRows);
+      })
+      .catch(function () {
+        showState('<div style="font-size:32px">❌</div><div>' + tr('errEmpty') + '</div>');
       });
-      processRows(dataRows);
-    })
-    .catch(function() {
-      showState('<div style="font-size:32px">❌</div><div>' + tr('errEmpty') + '</div>');
-    });
+  });
 }
 
 function isHeaderRow(r) {
