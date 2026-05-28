@@ -16,44 +16,19 @@ var tokenClient   = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function () {
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback:  handleIdToken,
-    auto_select: true  // silently re-authenticates returning users
-  });
-
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets email profile',
+    scope: 'https://www.googleapis.com/auth/spreadsheets email profile openid',
     callback: handleTokenResponse
   });
 
-  google.accounts.id.renderButton(
-    document.getElementById('g-signin-btn'),
-    { theme: 'outline', size: 'large', text: 'signin_with', locale: 'fr' }
-  );
-
-  // Show sign-in prompt
-  google.accounts.id.prompt();
+  // Wire up your sign-in button to this
+  document.getElementById('g-signin-btn').addEventListener('click', function () {
+    tokenClient.requestAccessToken();
+  });
 });
 
-// ── Step 1: ID token callback (tells us who the user is) ─────────────────────
-function handleIdToken(response) {
-  // Decode the JWT payload (no verification needed client-side; server validates)
-  var payload = JSON.parse(atob(response.credential.split('.')[1]));
-  var email   = payload.email;
 
-  if (!isAllowed(email)) {
-    document.getElementById('auth-error').style.display = 'block';
-    return;
-  }
-
-  currentUser = { email: email, name: payload.name, picture: payload.picture };
-  updateUserUI();
-
-  // Step 2: Request an access token for API calls
-  tokenClient.requestAccessToken({ prompt: '' });
-}
 
 // ── Step 2: Access token callback (lets us call the Sheets API) ───────────────
 function handleTokenResponse(response) {
@@ -62,11 +37,25 @@ function handleTokenResponse(response) {
     return;
   }
   accessToken = response.access_token;
-  tokenExpiry  = Date.now() + (response.expires_in - 60) * 1000; // refresh 1 min early
-  hideAuthOverlay();
-  // Kick off initial data load
-  loadInventory();
-  loadHistorique();
+  tokenExpiry  = Date.now() + (response.expires_in - 60) * 1000;
+
+  // Single call to get user identity — replaces handleIdToken entirely
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { 'Authorization': 'Bearer ' + accessToken }
+  })
+  .then(function (res) { return res.json(); })
+  .then(function (info) {
+    if (!isAllowed(info.email)) {
+      document.getElementById('auth-error').style.display = 'block';
+      accessToken = null;
+      return;
+    }
+    currentUser = { email: info.email, name: info.name, picture: info.picture };
+    updateUserUI();
+    hideAuthOverlay();
+    loadInventory();
+    loadHistorique();
+  });
 }
 
 // ── Token refresh ─────────────────────────────────────────────────────────────
