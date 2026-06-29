@@ -296,6 +296,6 @@ function submitDispensation() {
       btn.disabled = false;
     });
 
-  loadInventory()
-  loadHistorique()
+  loadInventory();
+  loadHistorique();
 }

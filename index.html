@@ -246,5 +246,19 @@
 <script src="dispensation.js"></script>
 <script src="historique.js"></script>
 <script src="main.js"></script>
+<script>
+// Dev-server heartbeat: tells serve.py a tab is still open so it can auto-shut
+// down when the site is closed. Only runs on localhost; no-op when hosted.
+(function () {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
+  function ping() {
+    if (document.visibilityState === 'hidden') return;
+    fetch('/__alive?t=' + Date.now(), { cache: 'no-store' }).catch(function () {});
+  }
+  ping();
+  setInterval(ping, 4000);
+  document.addEventListener('visibilitychange', ping);
+})();
+</script>
 </body>
 </html>
