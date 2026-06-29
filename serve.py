@@ -55,7 +55,7 @@ def watchdog(server):
 def main():
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     threading.Thread(target=watchdog, args=(server,), daemon=True).start()
-    url = f"http://localhost:{PORT}"
+    url = f"http://127.0.0.1:{PORT}"
     print(f"Serving {ROOT} at {url}  (auto-stops when the site is closed)")
     try:
         webbrowser.open(url)

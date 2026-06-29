@@ -51,7 +51,9 @@
 <div class="page-tabs">
   <button class="page-tab active" id="tab-inv" onclick="showPage('inventory')">Inventaire</button>
   <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
-  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Dispensation</button>
+  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
+  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Forfait</button>
+
 
 </div>
 
@@ -216,6 +218,77 @@
         </tr>
       </thead>
       <tbody id="hist-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══ FORFAIT PAGE ══ -->
+<div id="page-forfait">
+  <div class="sheet-bar">
+    <button class="file-btn" onclick="loadInventory()" id="charger-inv">Charger l'inventaire</button>
+  </div>
+  <div class="meta-bar" id="meta-bar" style="display:none">
+    <span class="category-badge" id="cat-badge">—</span>
+    <span id="meta-products"></span>
+    <span>·</span>
+    <span id="meta-updated"></span>
+  </div>
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card"><div class="stat-label" id="sl-total">Total produits</div><div class="stat-val ok" id="sv-total">—</div></div>
+    <div class="stat-card"><div class="stat-label" id="sl-low">Stock faible</div><div class="stat-val warn" id="sv-low">—</div></div>
+    <div class="stat-card"><div class="stat-label" id="sl-critical">Stock critique</div><div class="stat-val danger" id="sv-critical">—</div></div>
+  </div>
+  <div class="filter-bar" id="filter-bar" style="display:none">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Rechercher..."/>
+    </div>
+    <select class="filter-sel" id="stock-filter">
+      <option value="all" id="f-all">Tous les stocks</option>
+      <option value="ok"  id="f-ok">Stock OK</option>
+      <option value="low" id="f-low">Stock faible</option>
+      <option value="critical" id="f-critical">Stock critique</option>
+    </select>
+    <select class="filter-sel" id="family-filter">
+      <option value="all" id="f-fam-all">Toutes familles</option>
+    </select>
+    <select class="filter-sel" id="category-filter">
+      <option value="all" id="f-cat-all">Toutes catégories</option>
+    </select>
+  </div>
+  <div id="main-state">
+    <div class="state-box">
+      <div style="font-size:32px">📋</div>
+      <div id="state-msg">Cliquez sur "Charger l'inventaire" pour commencer.</div>
+    </div>
+  </div>
+  <div class="table-wrap" id="table-section" style="display:none">
+    <table id="inv-table">
+      <thead>
+        <tr>
+          <th data-col="code"        id="h-code">Code ↕</th>
+          <th data-col="product"     id="h-product">Produit ↕</th>
+          <th data-col="dose"        id="h-dose">Dose ↕</th>
+          <th data-col="format"      id="h-format">Fmt ↕</th>
+          <th data-col="dateExp"     id="h-dateExp">Exp. ↕</th>
+          <th data-col="stockInit"   id="h-stockInit">Init. ↕</th>
+          <th data-col="pa"          id="h-pa">PA ↕</th>
+          <th data-col="prixUnit"    id="h-prixUnit">Prix/u ↕</th>
+          <th data-col="sorties"     id="h-sorties">Sort. ↕</th>
+          <th data-col="change"      id="h-change">Chg ↕</th>
+          <th data-col="stockActuel" id="h-stockActuel">Stock act. ↕</th>
+          <th data-col="obs"         id="h-obs">Statut ↕</th>
+          <th data-col="consEstMo"   id="h-consEstMo">Cons/mo ↕</th>
+          <th data-col="moRest"      id="h-moRest">Mo rest. ↕</th>
+          <th data-col="quantMin"    id="h-quantMin">Q.min ↕</th>
+          <th data-col="valeur"      id="h-valeur">Valeur ↕</th>
+          <th data-col="etatsUnis"   id="h-etatsUnis">EU ↕</th>
+          <th data-col="essentiel"   id="h-essentiel">Essent. ↕</th>
+          <th data-col="famille"     id="h-famille">Famille ↕</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
     </table>
   </div>
 </div>
