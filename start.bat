@@ -5,7 +5,8 @@ REM
 REM  Double-click to run the app. It checks GitHub for the latest version,
 REM  updates this folder, then opens the app in your browser. The little window
 REM  closes itself once the app has started; the app's server runs in the
-REM  background and stops on its own a few seconds after you close the browser.
+REM  background (no window) and stops on its own a few seconds after you close
+REM  the browser.
 REM
 REM  Works with NO setup required:
 REM    * Updates use Git if installed, otherwise plain Windows (PowerShell).
@@ -43,24 +44,31 @@ if not defined USED_GIT (
 
 echo Starting the app...
 
-REM --- Start the server (all options auto-shut down when the browser closes).
+REM --- Start the server. Every option auto-shuts down when the browser closes.
 REM 1) Python, windowless.
-where pythonw >nul 2>nul && (start "" pythonw "%APPDIR%\serve.py" & goto bye)
-where pyw     >nul 2>nul && (start "" pyw "%APPDIR%\serve.py" & goto bye)
-REM 2) Plain Windows PowerShell server (no Python needed), hidden.
-where powershell >nul 2>nul && (
-    start "" powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%APPDIR%\serve.ps1"
-    goto bye
-)
-REM 3) Console Python, minimized.
-where py     >nul 2>nul && (start "" /min py "%APPDIR%\serve.py" & goto bye)
-where python >nul 2>nul && (start "" /min python "%APPDIR%\serve.py" & goto bye)
+where pythonw >nul 2>nul && start "" pythonw "%APPDIR%\serve.py" && goto bye
+where pyw     >nul 2>nul && start "" pyw "%APPDIR%\serve.py" && goto bye
+
+REM 2) Plain Windows PowerShell server (no Python). Launched via a hidden VBScript
+REM    shim so NO PowerShell window ever appears (not even a flash).
+where powershell >nul 2>nul && goto ps_server
+
+REM 3) Console Python, minimized (last resort).
+where py     >nul 2>nul && start "" /min py "%APPDIR%\serve.py" && goto bye
+where python >nul 2>nul && start "" /min python "%APPDIR%\serve.py" && goto bye
 
 echo.
 echo Could not start the app automatically.
 echo Please install Python from https://www.python.org/downloads/ then try again.
 echo.
 pause
+goto bye
+
+:ps_server
+set "TMPVBS=%TEMP%\hpca_run_%RANDOM%%RANDOM%.vbs"
+> "%TMPVBS%" echo CreateObject("WScript.Shell").Run "powershell -NoProfile -ExecutionPolicy Bypass -File ""%APPDIR%\serve.ps1""", 0, False
+start "" wscript "%TMPVBS%"
+goto bye
 
 :bye
 REM Delete this temp launcher copy and close the window.

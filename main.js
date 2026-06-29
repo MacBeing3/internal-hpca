@@ -93,9 +93,13 @@ function showPage(page) {
   document.getElementById('page-inventory').style.display    = page === 'inventory'    ? 'block' : 'none';
   document.getElementById('page-dispensation').style.display = page === 'dispensation' ? 'block' : 'none';
   document.getElementById('page-historique').style.display   = page === 'historique'   ? 'block' : 'none';
+  document.getElementById('page-forfait').style.display   = page === 'forfait'   ? 'block' : 'none';
+
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
   document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
+  document.getElementById('tab-hist').classList.toggle('active', page === 'forfait');
+
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
     if (document.getElementById('med-rows').children.length === 0 && namedRows!=[]) addMedRow();
