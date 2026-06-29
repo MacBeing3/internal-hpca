@@ -22,6 +22,7 @@ function setLang(l) {
   document.getElementById('tab-inv').textContent  = tr('tabInv');
   document.getElementById('tab-disp').textContent = tr('tabDisp');
   document.getElementById('tab-hist').textContent = tr('tabHist');
+  document.getElementById('tab-add').textContent  = tr('tabAdd');
 
   // Inventory + Forfait pages translate their own labels, headers and re-render.
   inventoryView.applyLang();
@@ -45,7 +46,7 @@ function setLang(l) {
   document.getElementById('lbl-hist-to').textContent         = tr('lblHistTo');
   document.getElementById('btn-hist-clear').textContent      = tr('btnHistClear');
   document.getElementById('hist-search-dossier').placeholder = tr('histSearchPlaceholder');
-  var histCols = ['Dossier','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
+  var histCols = ['Type','Dossier','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
   histCols.forEach(function(c) {
     var el = document.getElementById('hh-' + c.toLowerCase());
     if (el) el.childNodes[0].textContent = tr('hh' + c) + ' ';
@@ -54,6 +55,23 @@ function setLang(l) {
   document.querySelectorAll('.med-lbl-qty').forEach(function(el)    { el.textContent = tr('lblQty'); });
   document.querySelectorAll('.med-lbl-forfait').forEach(function(el){ el.textContent = tr('lblForfait'); });
   document.querySelectorAll('.med-select option[value=""]').forEach(function(el) { el.textContent = tr('selectMed'); });
+
+  // Add-stock page
+  document.getElementById('add-title').textContent          = tr('addTitle');
+  document.getElementById('add-section-mode').textContent   = tr('addSectionMode');
+  document.getElementById('add-mode-existing').textContent  = tr('addModeExisting');
+  document.getElementById('add-mode-new').textContent       = tr('addModeNew');
+  document.getElementById('add-section-med').textContent    = tr('addSectionMed');
+  document.getElementById('add-section-newmed').textContent = tr('addSectionNewMed');
+  document.getElementById('lbl-add-product').textContent    = tr('lblMedProduct');
+  document.getElementById('lbl-add-dose').textContent       = tr('lblMedDose');
+  document.getElementById('lbl-add-format').textContent     = tr('lblMedFormat');
+  document.getElementById('lbl-add-price').textContent      = tr('addLblPrice');
+  document.getElementById('add-section-qty').textContent    = tr('addSectionQty');
+  document.getElementById('lbl-add-qty').textContent        = tr('lblQty');
+  document.getElementById('btn-add-submit').textContent     = tr('addBtnSubmit');
+  document.getElementById('add-no-inv-msg').textContent     = tr('noInvMsg');
+  buildAddExistingRow();
 }
 
 // ── Page navigation ───────────────────────────────────────────────────────────
@@ -64,15 +82,22 @@ function showPage(page) {
   document.getElementById('page-dispensation').style.display = page === 'dispensation' ? 'block' : 'none';
   document.getElementById('page-historique').style.display   = page === 'historique'   ? 'block' : 'none';
   document.getElementById('page-forfait').style.display   = page === 'forfait'   ? 'block' : 'none';
+  document.getElementById('page-ajouter').style.display   = page === 'ajouter'   ? 'block' : 'none';
 
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
   document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
   document.getElementById('tab-forf').classList.toggle('active', page === 'forfait');
+  document.getElementById('tab-add').classList.toggle('active',  page === 'ajouter');
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
     if (document.getElementById('med-rows').children.length === 0 && namedRows!=[]) addMedRow();
+  }
+
+  if (page === 'ajouter') {
+    document.getElementById('add-no-inv').style.display = products.length ? 'none' : 'block';
+    buildAddExistingRow();
   }
 
 }

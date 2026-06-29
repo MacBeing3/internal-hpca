@@ -53,6 +53,7 @@
   <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
   <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
   <button class="page-tab" id="tab-forf" onclick="showPage('forfait')">Forfait</button>
+  <button class="page-tab" id="tab-add" onclick="showPage('ajouter')">Ajouter</button>
 
 
 </div>
@@ -205,6 +206,7 @@
     <table id="hist-table" style="table-layout:auto">
       <thead>
         <tr>
+          <th id="hh-type"      data-col="isAddition">Type ↕</th>
           <th id="hh-dossier"   data-col="dossier">Dossier ↕</th>
           <th id="hh-date"      data-col="date">Date ↕</th>
           <th id="hh-time"      data-col="time">Heure ↕</th>
@@ -296,6 +298,75 @@
   </div>
 </div>
 
+<!-- ══ AJOUTER (ADD STOCK) PAGE ══ -->
+<!-- Records a stock addition into the Dispensation sheet with col A = TRUE. -->
+<div id="page-ajouter" style="display:none">
+  <div class="disp-page">
+    <h2 id="add-title">Ajouter du stock</h2>
+
+    <div id="add-no-inv" class="no-inventory-notice" style="display:none">
+      ⚠️ <span id="add-no-inv-msg">L'inventaire n'est pas encore chargé.</span>
+    </div>
+
+    <!-- Mode: existing vs new medication -->
+    <div class="form-section">
+      <h3 id="add-section-mode">Type d'ajout</h3>
+      <div class="form-row" style="gap:24px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="add-mode" value="existing" checked onchange="setAddMode('existing')"/>
+          <span id="add-mode-existing">Médicament existant</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="add-mode" value="new" onchange="setAddMode('new')"/>
+          <span id="add-mode-new">Nouveau médicament</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Existing medication: cascading dropdowns (built by addstock.js) -->
+    <div class="form-section" id="add-existing-section">
+      <h3 id="add-section-med">Médicament</h3>
+      <div class="med-row" id="add-existing-row" style="align-items:flex-end"></div>
+    </div>
+
+    <!-- New medication: free-text fields -->
+    <div class="form-section" id="add-new-section" style="display:none">
+      <h3 id="add-section-newmed">Nouveau médicament</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label id="lbl-add-product">Produit</label>
+          <input type="text" id="add-new-product" placeholder="Nom du médicament"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-add-dose">Dose</label>
+          <input type="text" id="add-new-dose"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-add-format">Format</label>
+          <input type="text" id="add-new-format"/>
+        </div>
+        <div class="form-group">
+          <label id="lbl-add-price">Prix unitaire</label>
+          <input type="number" min="0" step="any" id="add-new-price"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quantity (shared by both modes) -->
+    <div class="form-section">
+      <h3 id="add-section-qty">Quantité ajoutée</h3>
+      <div class="form-row">
+        <div class="form-group" style="max-width:140px">
+          <label id="lbl-add-qty">Quantité</label>
+          <input type="number" min="1" step="1" value="1" id="add-qty"/>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="submitAddStock()" id="btn-add-submit">Ajouter au stock</button>
+  </div>
+</div>
+
 <!-- Delete confirmation modal -->
 <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--color-background-primary,#fff);border-radius:10px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18)">
@@ -321,6 +392,7 @@
 <script src="inventory.js"></script>
 <script src="dispensation.js"></script>
 <script src="historique.js"></script>
+<script src="addstock.js"></script>
 <script src="main.js"></script>
 <script>
 // Dev-server heartbeat: tells serve.py a tab is still open so it can auto-shut

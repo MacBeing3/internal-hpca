@@ -86,13 +86,34 @@ var T = {
     toastSuccess:'Dispensation enregistrée avec succès.',
     toastError:"Erreur lors de l'envoi. Veuillez réessayer.",
     toastValidate:'Veuillez remplir tous les champs obligatoires.',
+    toastSpecify:'Veuillez préciser la dose et le format de chaque médicament.',
     lblMedProduct: 'Produit',
     lblMedDose:    'Dose',
     lblMedFormat:  'Format',
     selectMedProduct: '-- Produit --',
     selectMedDose:    '-- Dose --',
     selectMedFormat:  '-- Format --',
-    toastNoMeds:'Veuillez ajouter au moins un médicament.'
+    toastNoMeds:'Veuillez ajouter au moins un médicament.',
+
+    // Add-stock tab
+    tabAdd:'Ajouter',
+    addTitle:'Ajouter du stock',
+    addSectionMode:"Type d'ajout",
+    addModeExisting:'Médicament existant',
+    addModeNew:'Nouveau médicament',
+    addSectionMed:'Médicament',
+    addSectionNewMed:'Nouveau médicament',
+    addLblPrice:'Prix unitaire',
+    addSectionQty:'Quantité ajoutée',
+    addBtnSubmit:'Ajouter au stock',
+    addToastSuccess:'Stock ajouté avec succès.',
+    addToastError:"Erreur lors de l'ajout. Veuillez réessayer.",
+    addToastQty:'Veuillez saisir une quantité valide.',
+    addToastSelect:'Veuillez sélectionner un médicament.',
+    addToastProduct:'Veuillez saisir le nom du médicament.',
+    hhType:'Type',
+    addTypeAdd:'Ajout',
+    addTypeDisp:'Disp.'
   },
 
   en: {
@@ -182,12 +203,33 @@ var T = {
     toastSuccess:'Dispensation recorded successfully.',
     toastError:'Error sending data. Please try again.',
     toastValidate:'Please fill in all required fields.',
+    toastSpecify:'Please specify the dose and format for each medication.',
     lblMedProduct: 'Product',
     lblMedDose:    'Dose',
     lblMedFormat:  'Format',
     selectMedProduct: '-- Product --',
     selectMedDose:    '-- Dose --',
     selectMedFormat:  '-- Format --',
-    toastNoMeds:'Please add at least one medication.'
+    toastNoMeds:'Please add at least one medication.',
+
+    // Add-stock tab
+    tabAdd:'Add stock',
+    addTitle:'Add stock',
+    addSectionMode:'Addition type',
+    addModeExisting:'Existing medication',
+    addModeNew:'New medication',
+    addSectionMed:'Medication',
+    addSectionNewMed:'New medication',
+    addLblPrice:'Unit price',
+    addSectionQty:'Quantity added',
+    addBtnSubmit:'Add to stock',
+    addToastSuccess:'Stock added successfully.',
+    addToastError:'Error adding stock. Please try again.',
+    addToastQty:'Please enter a valid quantity.',
+    addToastSelect:'Please select a medication.',
+    addToastProduct:'Please enter the medication name.',
+    hhType:'Type',
+    addTypeAdd:'Addition',
+    addTypeDisp:'Disp.'
   }
 };

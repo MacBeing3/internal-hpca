@@ -4,8 +4,9 @@ var GOOGLE_CLIENT_ID = '914714046695-0lpbvj12n5jlofd9hrlcvl9mfrsupchb.apps.googl
 // Whitelist of emails allowed to access the app
 var ALLOWED_EMAILS = [
   'cmcainformatique@gmail.com',
-  'brettmalitogo@gmail.com'
-  // add more as needed
+  'brettmalitogo@gmail.com',
+  'hcahca2021@gmail.com',
+  'dawsonmac05@gmail.com'
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────

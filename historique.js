@@ -22,13 +22,15 @@ function loadHistorique() {
       .then(function (data) {
 
             var values = data.values || [];
+            // Sheet schema (11 cols): A IsAddition, B Dossier, C Date, D Time,
+            // E Product, F Dose, G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
             // skip header row if present
             var isHeader = function(r) {
-              return (r[0] || '').toLowerCase().includes('dossier') ||
-                    (r[3] || '').toLowerCase().includes('produit') ||
-                    (r[3] || '').toLowerCase().includes('product');
+              return (r[1] || '').toLowerCase().includes('dossier') ||
+                    (r[4] || '').toLowerCase().includes('produit') ||
+                    (r[4] || '').toLowerCase().includes('product');
             };
-            var dataRows = values.filter(function(r) { return r.length >= 4 && !isHeader(r); });
+            var dataRows = values.filter(function(r) { return r.length >= 5 && !isHeader(r); });
             if (!dataRows.length) {
               histShowState('<div style="font-size:32px">⚠️</div><div>' + tr('histErrEmpty') + '</div>');
               return;
@@ -37,27 +39,28 @@ function loadHistorique() {
             var offset = isHeader(values[0]) ? 2 : 1;
             histRows = dataRows.map(function(r, i) {
               return {
-                rowIndex:  i + offset,
-                dossier:   (r[0] || '').trim(),
-                date:      (r[1] || '').trim(),
-                time:      (r[2] || '').trim(),
-                product:   (r[3] || '').trim(),
-                dose:      (r[4] || '').trim(),
-                format:    (r[5] || '').trim(),
-                unitPrice: (r[6] || '').trim(),
-                qty:       (r[7] || '').trim(),
-                lineTotal: (r[8] || '').trim(),
-                forfait:   (r[9] || '').trim()
+                rowIndex:   i + offset,
+                isAddition: (r[0] || '').trim().toUpperCase() === 'TRUE',
+                dossier:    (r[1] || '').trim(),
+                date:       (r[2] || '').trim(),
+                time:       (r[3] || '').trim(),
+                product:    (r[4] || '').trim(),
+                dose:       (r[5] || '').trim(),
+                format:     (r[6] || '').trim(),
+                unitPrice:  (r[7] || '').trim(),
+                qty:        (r[8] || '').trim(),
+                lineTotal:  (r[9] || '').trim(),
+                forfait:    (r[10] || '').trim()
               };
             });
             document.getElementById('hist-filter-bar').style.display = 'flex';
             histShowTable();
             renderHistorique();
           })
-        })
-      .catch(function () {
-        histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
-      });
+          .catch(function () {
+            histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
+          });
+  });
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -106,7 +109,11 @@ function renderHistorique() {
     var forfaitBadge = r.forfait === 'TRUE'
       ? '<span class="badge badge-info">✓</span>'
       : '<span class="badge badge-neutral">—</span>';
+    var typeBadge = r.isAddition
+      ? '<span class="badge badge-ok">' + tr('addTypeAdd') + '</span>'
+      : '<span class="badge badge-neutral">' + tr('addTypeDisp') + '</span>';
     html += '<tr>' +
+      '<td style="text-align:center">' + typeBadge + '</td>' +
       '<td class="code-cell">'  + fmt(r.dossier)   + '</td>' +
       '<td>'                    + fmt(r.date)       + '</td>' +
       '<td>'                    + fmt(r.time)       + '</td>' +

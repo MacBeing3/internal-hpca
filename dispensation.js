@@ -1,5 +1,35 @@
-// ── Config ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGjrl_I-p8hM66xbCMMZPDwg9cD32aTjQ4iXnzgsroLvPsC6u9kOhTjeCwnDJNZd8oZA/exec';
+
+
+// Append rows to the Dispensation sheet using the SIGNED-IN USER's OAuth token
+// (granted at login via the 'spreadsheets' scope). Because the write is made with
+// the user's own credentials, the edit is attributed to THEM in the sheet's
+// version history. Requires each allowed user to have Editor access to the sheet.
+// DISP_SHEET_ID / DISP_SHEET_TAB are defined in historique.js (available at call time).
+function appendRowsToSheet(rows, callback) {
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
+            '/values/' + encodeURIComponent(DISP_SHEET_TAB) +
+            '!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+  ensureFreshToken(function () {
+    authFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: rows })
+    })
+      .then(function (res) {
+        // Success is determined by the HTTP status alone — don't require the
+        // body to parse (a parse hiccup must not masquerade as a failed write).
+        if (res.ok) { callback(true); return; }
+        return res.text().then(function (t) {
+          console.error('Sheets append failed:', res.status, t);
+          callback(false);
+        });
+      })
+      .catch(function (err) {
+        console.error('Sheets append error:', err);
+        callback(false);
+      });
+  });
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function parsePrixUnit(raw) {
@@ -242,8 +272,9 @@ function submitDispensation() {
   var medRows = document.getElementById('med-rows').children;
   if (!medRows.length) { showToast(tr('toastNoMeds'), 'error'); return; }
 
-  var rows  = [];
-  var valid = true;
+  var rows   = [];
+  var valid  = true;
+  var errMsg = 'toastValidate';
   for (var i = 0; i < medRows.length; i++) {
     var selProd = medRows[i].querySelector('.sel-product');
     var selDose = medRows[i].querySelector('.sel-dose');
@@ -252,12 +283,20 @@ function submitDispensation() {
     var forfait = medRows[i].querySelector('.med-forfait'); 
     if (!selProd || !selProd.value) { valid = false; break; }
 
+    // Require a real product-dose-format match. This blocks lines where the
+    // product has several doses/formats but the user left those dropdowns on
+    // their placeholder, which would create rows not linkable to a product.
     var p         = getProductByPDF(selProd.value, selDose.value, selFmt.value);
+    if (!p) { valid = false; errMsg = 'toastSpecify'; break; }
     var unitVal   = parsePrixUnit(p ? p.prixUnit : '');
     var qtyVal    = parseInt(qty.value) || 0;
     var lineTotal = unitVal !== null ? unitVal * qtyVal : '';
 
+    // Dispensation sheet schema (11 cols): A IsAddition (FALSE = dispensation),
+    // B Dossier, C Date, D Time, E Product, F Dose, G Format, H UnitPrice, I Qty,
+    // J LineTotal, K Forfait. Stock additions (Add-stock tab) write 'TRUE' in col A.
     rows.push([
+      'FALSE',
       dossier, date, time,
       selProd.value,
       selDose.value,
@@ -269,33 +308,23 @@ function submitDispensation() {
     ]);
   }
 
-  if (!valid) { showToast(tr('toastValidate'), 'error'); return; }
+  if (!valid) { showToast(tr(errMsg), 'error'); return; }
 
   var btn = document.getElementById('btn-submit');
   btn.disabled = true;
-    fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'append', rows:rows })
-  })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.status === 'ok') {
-        showToast(tr('toastSuccess'), 'success');
-        document.getElementById('inp-dossier').value = '';
-        setDefaultDateTime();
-        document.getElementById('med-rows').innerHTML = '';
-        document.getElementById('total-section').style.display = 'none';
-        addMedRow();
-      } else {
-        showToast(tr('toastError'), 'error');
-      }
-      btn.disabled = false;
-    })
-    .catch(function() {
+  appendRowsToSheet(rows, function (ok) {
+    if (ok) {
+      showToast(tr('toastSuccess'), 'success');
+      document.getElementById('inp-dossier').value = '';
+      setDefaultDateTime();
+      document.getElementById('med-rows').innerHTML = '';
+      document.getElementById('total-section').style.display = 'none';
+      addMedRow();
+    } else {
       showToast(tr('toastError'), 'error');
-      btn.disabled = false;
-    });
-
-  loadInventory();
-  loadHistorique();
+    }
+    btn.disabled = false;
+    loadInventory();
+    loadHistorique();
+  });
 }
