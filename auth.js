@@ -54,6 +54,7 @@ function handleTokenResponse(response) {
     updateUserUI();
     hideAuthOverlay();
     loadInventory();
+    loadForfait();
     loadHistorique();
   });
 }

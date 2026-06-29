@@ -23,31 +23,9 @@ function setLang(l) {
   document.getElementById('tab-disp').textContent = tr('tabDisp');
   document.getElementById('tab-hist').textContent = tr('tabHist');
 
-  // Inventory stats
-  document.getElementById('sl-total').textContent    = tr('slTotal');
-  document.getElementById('sl-low').textContent      = tr('slLow');
-  document.getElementById('sl-critical').textContent = tr('slCritical');
-
-  // Filters
-  document.getElementById('f-all').textContent     = tr('fAll');
-  document.getElementById('f-ok').textContent      = tr('fOk');
-  document.getElementById('f-low').textContent     = tr('fLow');
-  document.getElementById('f-critical').textContent = tr('fCritical');
-  document.getElementById('f-fam-all').textContent = tr('fFamAll');
-  document.getElementById('f-cat-all').textContent = tr('fCatAll');
-
-  // Inventory buttons & inputs
-  document.getElementById('charger-inv').textContent       = tr('updInv');
-  document.getElementById('search-input').placeholder      = tr('searchPlaceholder');
-
-  // Table headers
-  var cols = ['Code','Product','Dose','Format','DateExp','StockInit','Pa','PrixUnit',
-              'Sorties','Change','StockActuel','Obs','ConsEstMo','MoRest','QuantMin',
-              'Valeur','EtatsUnis','Essentiel','Famille'];
-  cols.forEach(function(c) {
-    var el = document.getElementById('h-' + c.charAt(0).toLowerCase() + c.slice(1));
-    if (el) el.textContent = tr('h' + c) + ' ↕';
-  });
+  // Inventory + Forfait pages translate their own labels, headers and re-render.
+  inventoryView.applyLang();
+  forfaitView.applyLang();
 
   // Dispensation page
   document.getElementById('disp-title').textContent           = tr('dispTitle');
@@ -76,14 +54,6 @@ function setLang(l) {
   document.querySelectorAll('.med-lbl-qty').forEach(function(el)    { el.textContent = tr('lblQty'); });
   document.querySelectorAll('.med-lbl-forfait').forEach(function(el){ el.textContent = tr('lblForfait'); });
   document.querySelectorAll('.med-select option[value=""]').forEach(function(el) { el.textContent = tr('selectMed'); });
-
-  // State message / table
-  if (products.length) {
-    renderTable();
-  } else {
-    var sm = document.getElementById('state-msg');
-    if (sm) sm.textContent = tr('statePrompt');
-  }
 }
 
 // ── Page navigation ───────────────────────────────────────────────────────────
@@ -98,7 +68,7 @@ function showPage(page) {
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
   document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
-  document.getElementById('tab-hist').classList.toggle('active', page === 'forfait');
+  document.getElementById('tab-forf').classList.toggle('active', page === 'forfait');
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
@@ -107,20 +77,9 @@ function showPage(page) {
 
 }
 
-// ── Event listeners ───────────────────────────────────────────────────────────
-document.getElementById('search-input').addEventListener('input',   renderTable);
-document.getElementById('stock-filter').addEventListener('change',  renderTable);
-document.getElementById('category-filter').addEventListener('change', renderTable);
-document.getElementById('family-filter').addEventListener('change', renderTable);
-
-document.querySelectorAll('thead th[data-col]').forEach(function(th) {
-  th.addEventListener('click', function() {
-    var col = th.dataset.col;
-    if (sortCol === col) sortDir *= -1;
-    else { sortCol = col; sortDir = 1; }
-    renderTable();
-  });
-});
+// Note: search/filter/sort listeners are now wired per-view inside inventory.js
+// (scoped to each table), so the inventory and forfait pages sort independently
+// and historique's headers are no longer double-bound.
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('date-label').textContent =

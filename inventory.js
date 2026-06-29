@@ -1,34 +1,14 @@
 // ── Config ──────────────────────────────────────────────────────────────────
 var SHEET_ID  = '1Ey8cGl4y0UvxGx7N3Wy9dvrM4E1PYTnaTbGKd9t-73w';
 var SHEET_TAB = 'Pharmacie';
+var SHEET_TAB_FORFAIT = 'Pharm FORF';
 
-// ── State ────────────────────────────────────────────────────────────────────
+// Legacy global: the INVENTORY product list. dispensation.js reads this to build
+// its medication dropdowns, so it must always reflect the inventory view (never
+// Forfait). It is kept in sync by the inventory view (cfg.syncGlobal below).
 var products = [];
-var sortCol  = null;
-var sortDir  = 1;
 
-
-function loadInventory() {
-  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
-            '/values/' + SHEET_TAB + '!A:T';
-  showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
-  hideAll();
-
-  ensureFreshToken(function () {
-    authFetch(url)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var dataRows = (data.values || []).filter(function (r) {
-          return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
-        });
-        processRows(dataRows);
-      })
-      .catch(function () {
-        showState('<div style="font-size:32px">❌</div><div>' + tr('errEmpty') + '</div>');
-      });
-  });
-}
-
+// ── Pure helpers (no state, no DOM — shared by every view) ─────────────────────
 function isHeaderRow(r) {
   var v = (r[2] || '').toLowerCase().trim();
   return v === 'produit' || v === 'product' || v === 'produits';
@@ -39,65 +19,8 @@ function parseNum(v) {
   return isNaN(n) ? '' : n;
 }
 
-function processRows(rows) {
-  if (!rows.length) {
-    showState('<div style="font-size:32px">⚠️</div><div>' + tr('errEmpty') + '</div>');
-    return;
-  }
-  products = rows.map(function(r) {
-    return {
-      category:   (r[0]  || '').trim(),
-      code:       (r[1]  || '').trim(),
-      product:    (r[2]  || '').trim(),
-      dose:       (r[3]  || '').trim(),
-      format:     (r[4]  || '').trim(),
-      dateExp:    (r[5]  || '').trim(),
-      stockInit:  parseNum(r[6]),
-      pa:         (r[7]  || '').trim(),
-      prixUnit:   (r[8]  || '').trim(),
-      sorties:    parseNum(r[9]),
-      change:     parseNum(r[10]),
-      stockActuel:parseNum(r[11]),
-      obs:        (r[12] || '').trim(),
-      consEstMo:  parseNum(r[13]),
-      moRest:     parseNum(r[14]),
-      quantMin:   (r[15] || '').trim(),
-      valeur:     parseNum(r[16]),
-      etatsUnis:  (r[17] || '').trim(),
-      essentiel:  (r[18] || '').trim(),
-      famille:    (r[19] || '').trim()
-    };
-  });
-  buildFamilyFilter();
-  buildCategoryFilter();
-  updateStats();
-  showTable();
-  renderTable();
-  document.getElementById('disp-no-inv').style.display = 'none';
-}
+function fmt(v) { return (v === '' || v === null || v === undefined) ? '—' : v; }
 
-// ── UI state helpers ──────────────────────────────────────────────────────────
-function showState(html) {
-  var el = document.getElementById('main-state');
-  el.style.display = 'block';
-  el.innerHTML = '<div class="state-box">' + html + '</div>';
-}
-
-function hideAll() {
-  ['meta-bar','stats-row','filter-bar','table-section'].forEach(function(id) {
-    document.getElementById(id).style.display = 'none';
-  });
-}
-
-function showTable() {
-  document.getElementById('main-state').style.display    = 'none';
-  document.getElementById('meta-bar').style.display      = 'flex';
-  document.getElementById('stats-row').style.display     = 'grid';
-  document.getElementById('filter-bar').style.display    = 'flex';
-  document.getElementById('table-section').style.display = 'block';
-}
-
-// ── Stats & filters ───────────────────────────────────────────────────────────
 function getStockStatus(p) {
   if (p.moRest !== '' && p.moRest <= 1) return 'critical';
   if (p.moRest !== '' && p.moRest < 6)  return 'low';
@@ -105,43 +28,6 @@ function getStockStatus(p) {
       (p.stockActuel / p.stockInit) < 0.1) return 'critical';
   return 'ok';
 }
-
-function updateStats() {
-  var n    = products.length;
-  var low  = products.filter(function(p) { return getStockStatus(p) === 'low';      }).length;
-  var crit = products.filter(function(p) { return getStockStatus(p) === 'critical'; }).length;
-  document.getElementById('sv-total').textContent = n;
-  document.getElementById('sv-low').textContent   = low;
-  document.getElementById('sv-critical').textContent = crit;
-  var cats = [];
-  products.forEach(function(p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
-  document.getElementById('cat-badge').textContent     = cats.join(' · ') || '—';
-  document.getElementById('meta-products').textContent = n + ' ' + tr('metaProducts');
-  document.getElementById('meta-updated').textContent  = tr('metaUpdated');
-}
-
-function buildCategoryFilter() {
-  var sel  = document.getElementById('category-filter');
-  while (sel.options.length > 1) sel.remove(1);
-  var cats = [];
-  products.forEach(function(p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
-  cats.sort().forEach(function(c) {
-    var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
-  });
-}
-
-function buildFamilyFilter() {
-  var sel  = document.getElementById('family-filter');
-  while (sel.options.length > 1) sel.remove(1);
-  var fams = [];
-  products.forEach(function(p) { if (p.famille && fams.indexOf(p.famille) === -1) fams.push(p.famille); });
-  fams.sort().forEach(function(f) {
-    var o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o);
-  });
-}
-
-// ── Table render ──────────────────────────────────────────────────────────────
-function fmt(v) { return (v === '' || v === null || v === undefined) ? '—' : v; }
 
 function stockBar(p) {
   if (p.stockInit === '' || p.stockActuel === '') return '';
@@ -170,65 +56,257 @@ function expBadge(ds) {
   return '<span class="badge badge-neutral">' + ds + '</span>';
 }
 
-function renderTable() {
-  var q  = (document.getElementById('search-input').value  || '').toLowerCase();
-  var sf = document.getElementById('stock-filter').value;
-  var ff = document.getElementById('family-filter').value;
-  var cf = document.getElementById('category-filter').value;
+// ── View factory ───────────────────────────────────────────────────────────────
+// One sheet-backed inventory view. Each instance owns its own data + DOM, found by
+// suffixing the shared base ids (''  -> inventory page,  '-forf' -> forfait page).
+function createSheetView(cfg) {
+  var suffix = cfg.suffix || '';
+  function $(base) { return document.getElementById(base + suffix); }
 
-  var rows = products.filter(function(p) {
-    var s = getStockStatus(p);
-    if (sf !== 'all' && s !== sf) return false;
-    if (ff !== 'all' && p.famille  !== ff) return false;
-    if (cf !== 'all' && p.category !== cf) return false;
-    if (q && !(p.code + ' ' + p.product + ' ' + p.dose + ' ' + p.famille).toLowerCase().includes(q)) return false;
-    return true;
-  });
+  var view = { tab: cfg.tab, products: [], sortCol: null, sortDir: 1 };
 
-  if (sortCol) {
-    rows = rows.slice().sort(function(a, b) {
-      var av = a[sortCol], bv = b[sortCol];
-      if (av === '' || av === undefined) av = sortDir > 0 ?  Infinity : -Infinity;
-      if (bv === '' || bv === undefined) bv = sortDir > 0 ?  Infinity : -Infinity;
-      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  // ── UI state helpers ──
+  function showState(html) {
+    var el = $('main-state');
+    el.style.display = 'block';
+    el.innerHTML = '<div class="state-box">' + html + '</div>';
+  }
+  function hideAll() {
+    ['meta-bar', 'stats-row', 'filter-bar', 'table-section'].forEach(function (b) {
+      var el = $(b); if (el) el.style.display = 'none';
+    });
+  }
+  function showTable() {
+    $('main-state').style.display    = 'none';
+    $('meta-bar').style.display      = 'flex';
+    $('stats-row').style.display     = 'grid';
+    $('filter-bar').style.display    = 'flex';
+    $('table-section').style.display = 'block';
+  }
+
+  // ── Load ──
+  view.load = function () {
+    var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
+              '/values/' + cfg.tab + '!A:T';
+    showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
+    hideAll();
+
+    ensureFreshToken(function () {
+      authFetch(url)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var dataRows = (data.values || []).filter(function (r) {
+            return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
+          });
+          processRows(dataRows);
+        })
+        .catch(function () {
+          showState('<div style="font-size:32px">❌</div><div>' + tr('errEmpty') + '</div>');
+        });
+    });
+  };
+
+  function processRows(rows) {
+    if (!rows.length) {
+      showState('<div style="font-size:32px">⚠️</div><div>' + tr('errEmpty') + '</div>');
+      return;
+    }
+    view.products = rows.map(function (r) {
+      return {
+        category:   (r[0]  || '').trim(),
+        code:       (r[1]  || '').trim(),
+        product:    (r[2]  || '').trim(),
+        dose:       (r[3]  || '').trim(),
+        format:     (r[4]  || '').trim(),
+        dateExp:    (r[5]  || '').trim(),
+        stockInit:  parseNum(r[6]),
+        pa:         (r[7]  || '').trim(),
+        prixUnit:   (r[8]  || '').trim(),
+        sorties:    parseNum(r[9]),
+        change:     parseNum(r[10]),
+        stockActuel:parseNum(r[11]),
+        obs:        (r[12] || '').trim(),
+        consEstMo:  parseNum(r[13]),
+        moRest:     parseNum(r[14]),
+        quantMin:   (r[15] || '').trim(),
+        valeur:     parseNum(r[16]),
+        etatsUnis:  (r[17] || '').trim(),
+        essentiel:  (r[18] || '').trim(),
+        famille:    (r[19] || '').trim()
+      };
+    });
+
+    // Keep the legacy global in sync (inventory only) so dispensation.js works.
+    if (cfg.syncGlobal) {
+      products = view.products;
+      var noInv = document.getElementById('disp-no-inv');
+      if (noInv) noInv.style.display = 'none';
+    }
+
+    buildFamilyFilter();
+    buildCategoryFilter();
+    updateStats();
+    showTable();
+    view.render();
+  }
+
+  // ── Stats & filters ──
+  function updateStats() {
+    var n    = view.products.length;
+    var low  = view.products.filter(function (p) { return getStockStatus(p) === 'low';      }).length;
+    var crit = view.products.filter(function (p) { return getStockStatus(p) === 'critical'; }).length;
+    $('sv-total').textContent    = n;
+    $('sv-low').textContent      = low;
+    $('sv-critical').textContent = crit;
+    var cats = [];
+    view.products.forEach(function (p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
+    $('cat-badge').textContent     = cats.join(' · ') || '—';
+    $('meta-products').textContent = n + ' ' + tr('metaProducts');
+    $('meta-updated').textContent  = tr('metaUpdated');
+  }
+
+  function buildCategoryFilter() {
+    var sel = $('category-filter');
+    while (sel.options.length > 1) sel.remove(1);
+    var cats = [];
+    view.products.forEach(function (p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
+    cats.sort().forEach(function (c) {
+      var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
     });
   }
 
-  var cats = [];
-  rows.forEach(function(p) { if (cats.indexOf(p.category) === -1) cats.push(p.category); });
-
-  var html = '';
-  cats.forEach(function(cat) {
-    var catRows = rows.filter(function(p) { return p.category === cat; });
-    if (cat) html += '<tr class="cat-row"><td colspan="19">' + cat + '</td></tr>';
-    catRows.forEach(function(p) {
-      var s  = getStockStatus(p);
-      var rb = s === 'critical' ? 'background:#FFF5F5' : s === 'low' ? 'background:#FFFBF0' : '';
-      html += '<tr style="' + rb + '">' +
-        '<td class="code-cell">'    + fmt(p.code)     + '</td>' +
-        '<td class="product-cell">' + fmt(p.product)  + '</td>' +
-        '<td>'  + fmt(p.dose)   + '</td>' +
-        '<td>'  + (p.format ? '<span class="badge badge-neutral">' + p.format + '</span>' : '—') + '</td>' +
-        '<td>'  + expBadge(p.dateExp) + '</td>' +
-        '<td class="num-cell">' + fmt(p.stockInit)  + '</td>' +
-        '<td>'  + fmt(p.pa)     + '</td>' +
-        '<td class="num-cell">' + fmt(p.prixUnit)   + '</td>' +
-        '<td class="num-cell">' + fmt(p.sorties)    + '</td>' +
-        '<td class="num-cell">' + fmt(p.change)     + '</td>' +
-        '<td class="num-cell">' + stockBar(p) + fmt(p.stockActuel) + '</td>' +
-        '<td>'  + statusBadge(p) + '</td>' +
-        '<td class="num-cell">' + fmt(p.consEstMo)  + '</td>' +
-        '<td class="num-cell">' + (p.moRest !== '' ? Number(p.moRest).toFixed(1) : '—') + '</td>' +
-        '<td class="num-cell">' + fmt(p.quantMin)   + '</td>' +
-        '<td class="num-cell">' + (p.valeur !== '' ? Number(p.valeur).toLocaleString() + ' FCFA' : '—') + '</td>' +
-        '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
-        '<td>'  + fmt(p.essentiel) + '</td>' +
-        '<td>'  + fmt(p.famille)   + '</td>' +
-      '</tr>';
+  function buildFamilyFilter() {
+    var sel = $('family-filter');
+    while (sel.options.length > 1) sel.remove(1);
+    var fams = [];
+    view.products.forEach(function (p) { if (p.famille && fams.indexOf(p.famille) === -1) fams.push(p.famille); });
+    fams.sort().forEach(function (f) {
+      var o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o);
     });
-  });
+  }
 
-  document.getElementById('table-body').innerHTML =
-    html || '<tr><td colspan="19" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
-            tr('noResults') + '</td></tr>';
+  // ── Table render ──
+  view.render = function () {
+    var q  = ($('search-input').value || '').toLowerCase();
+    var sf = $('stock-filter').value;
+    var ff = $('family-filter').value;
+    var cf = $('category-filter').value;
+
+    var rows = view.products.filter(function (p) {
+      var s = getStockStatus(p);
+      if (sf !== 'all' && s !== sf) return false;
+      if (ff !== 'all' && p.famille  !== ff) return false;
+      if (cf !== 'all' && p.category !== cf) return false;
+      if (q && !(p.code + ' ' + p.product + ' ' + p.dose + ' ' + p.famille).toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    if (view.sortCol) {
+      rows = rows.slice().sort(function (a, b) {
+        var av = a[view.sortCol], bv = b[view.sortCol];
+        if (av === '' || av === undefined) av = view.sortDir > 0 ?  Infinity : -Infinity;
+        if (bv === '' || bv === undefined) bv = view.sortDir > 0 ?  Infinity : -Infinity;
+        return av < bv ? -view.sortDir : av > bv ? view.sortDir : 0;
+      });
+    }
+
+    var cats = [];
+    rows.forEach(function (p) { if (cats.indexOf(p.category) === -1) cats.push(p.category); });
+
+    var html = '';
+    cats.forEach(function (cat) {
+      var catRows = rows.filter(function (p) { return p.category === cat; });
+      if (cat) html += '<tr class="cat-row"><td colspan="19">' + cat + '</td></tr>';
+      catRows.forEach(function (p) {
+        var s  = getStockStatus(p);
+        var rb = s === 'critical' ? 'background:#FFF5F5' : s === 'low' ? 'background:#FFFBF0' : '';
+        html += '<tr style="' + rb + '">' +
+          '<td class="code-cell">'    + fmt(p.code)     + '</td>' +
+          '<td class="product-cell">' + fmt(p.product)  + '</td>' +
+          '<td>'  + fmt(p.dose)   + '</td>' +
+          '<td>'  + (p.format ? '<span class="badge badge-neutral">' + p.format + '</span>' : '—') + '</td>' +
+          '<td>'  + expBadge(p.dateExp) + '</td>' +
+          '<td class="num-cell">' + fmt(p.stockInit)  + '</td>' +
+          '<td>'  + fmt(p.pa)     + '</td>' +
+          '<td class="num-cell">' + fmt(p.prixUnit)   + '</td>' +
+          '<td class="num-cell">' + fmt(p.sorties)    + '</td>' +
+          '<td class="num-cell">' + fmt(p.change)     + '</td>' +
+          '<td class="num-cell">' + stockBar(p) + fmt(p.stockActuel) + '</td>' +
+          '<td>'  + statusBadge(p) + '</td>' +
+          '<td class="num-cell">' + fmt(p.consEstMo)  + '</td>' +
+          '<td class="num-cell">' + (p.moRest !== '' ? Number(p.moRest).toFixed(1) : '—') + '</td>' +
+          '<td class="num-cell">' + fmt(p.quantMin)   + '</td>' +
+          '<td class="num-cell">' + (p.valeur !== '' ? Number(p.valeur).toLocaleString() + ' FCFA' : '—') + '</td>' +
+          '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
+          '<td>'  + fmt(p.essentiel) + '</td>' +
+          '<td>'  + fmt(p.famille)   + '</td>' +
+        '</tr>';
+      });
+    });
+
+    $('table-body').innerHTML =
+      html || '<tr><td colspan="19" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
+              tr('noResults') + '</td></tr>';
+  };
+
+  // ── Translation (this view's own labels/headers) ──
+  view.applyLang = function () {
+    var setText = function (base, key) { var el = $(base); if (el) el.textContent = tr(key); };
+    setText('sl-total', 'slTotal');
+    setText('sl-low', 'slLow');
+    setText('sl-critical', 'slCritical');
+    setText('f-all', 'fAll');
+    setText('f-ok', 'fOk');
+    setText('f-low', 'fLow');
+    setText('f-critical', 'fCritical');
+    setText('f-fam-all', 'fFamAll');
+    setText('f-cat-all', 'fCatAll');
+    setText('charger-inv', 'updInv');
+    var si = $('search-input'); if (si) si.placeholder = tr('searchPlaceholder');
+
+    var cols = ['Code','Product','Dose','Format','DateExp','StockInit','Pa','PrixUnit',
+                'Sorties','Change','StockActuel','Obs','ConsEstMo','MoRest','QuantMin',
+                'Valeur','EtatsUnis','Essentiel','Famille'];
+    cols.forEach(function (c) {
+      var el = $('h-' + c.charAt(0).toLowerCase() + c.slice(1));
+      if (el) el.textContent = tr('h' + c) + ' ↕';
+    });
+
+    if (view.products.length) {
+      view.render();
+    } else {
+      var sm = $('state-msg'); if (sm) sm.textContent = tr('statePrompt');
+    }
+  };
+
+  // ── Wire this view's own listeners (scoped to its table — no global handlers) ──
+  (function wire() {
+    var si = $('search-input');   if (si) si.addEventListener('input',  view.render);
+    var sf = $('stock-filter');   if (sf) sf.addEventListener('change', view.render);
+    var cf = $('category-filter');if (cf) cf.addEventListener('change', view.render);
+    var ff = $('family-filter');  if (ff) ff.addEventListener('change', view.render);
+
+    var table = $('inv-table');
+    if (table) {
+      table.querySelectorAll('thead th[data-col]').forEach(function (th) {
+        th.addEventListener('click', function () {
+          var col = th.dataset.col;
+          if (view.sortCol === col) view.sortDir *= -1;
+          else { view.sortCol = col; view.sortDir = 1; }
+          view.render();
+        });
+      });
+    }
+  })();
+
+  return view;
 }
+
+// ── Instances ───────────────────────────────────────────────────────────────────
+var inventoryView = createSheetView({ tab: SHEET_TAB,         suffix: '',      syncGlobal: true });
+var forfaitView   = createSheetView({ tab: SHEET_TAB_FORFAIT, suffix: '-forf'                    });
+
+// ── Legacy shims (called from auth.js, dispensation.js, historique.js, HTML) ──────
+function loadInventory() { inventoryView.load(); }
+function loadForfait()   { forfaitView.load(); }
+function renderTable()   { inventoryView.render(); }
