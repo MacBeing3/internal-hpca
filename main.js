@@ -79,7 +79,7 @@ function showPage(page) {
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
-    if (document.getElementById('med-rows').children.length === 0 && namedRows!=[]) addMedRow();
+    if (document.getElementById('med-rows').children.length === 0) addMedRow();
   }
 
   if (page === 'ajouter') {
