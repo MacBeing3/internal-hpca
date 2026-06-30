@@ -6,7 +6,10 @@ var ALLOWED_EMAILS = [
   'cmcainformatique@gmail.com',
   'brettmalitogo@gmail.com',
   'hcahca2021@gmail.com',
-  'dawsonmac05@gmail.com'
+  'dawsonmac05@gmail.com',
+  'cmcaconsultations@gmail.com',
+  'cmcacpn@gmail.com'
+
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────

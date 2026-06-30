@@ -56,22 +56,7 @@ function setLang(l) {
   document.querySelectorAll('.med-lbl-forfait').forEach(function(el){ el.textContent = tr('lblForfait'); });
   document.querySelectorAll('.med-select option[value=""]').forEach(function(el) { el.textContent = tr('selectMed'); });
 
-  // Add-stock page
-  document.getElementById('add-title').textContent          = tr('addTitle');
-  document.getElementById('add-section-mode').textContent   = tr('addSectionMode');
-  document.getElementById('add-mode-existing').textContent  = tr('addModeExisting');
-  document.getElementById('add-mode-new').textContent       = tr('addModeNew');
-  document.getElementById('add-section-med').textContent    = tr('addSectionMed');
-  document.getElementById('add-section-newmed').textContent = tr('addSectionNewMed');
-  document.getElementById('lbl-add-product').textContent    = tr('lblMedProduct');
-  document.getElementById('lbl-add-dose').textContent       = tr('lblMedDose');
-  document.getElementById('lbl-add-format').textContent     = tr('lblMedFormat');
-  document.getElementById('lbl-add-price').textContent      = tr('addLblPrice');
-  document.getElementById('add-section-qty').textContent    = tr('addSectionQty');
-  document.getElementById('lbl-add-qty').textContent        = tr('lblQty');
-  document.getElementById('btn-add-submit').textContent     = tr('addBtnSubmit');
-  document.getElementById('add-no-inv-msg').textContent     = tr('noInvMsg');
-  buildAddExistingRow();
+  // The Ajouter and Mouvement pages are hardcoded in French (not translated here).
 }
 
 // ── Page navigation ───────────────────────────────────────────────────────────
@@ -83,12 +68,14 @@ function showPage(page) {
   document.getElementById('page-historique').style.display   = page === 'historique'   ? 'block' : 'none';
   document.getElementById('page-forfait').style.display   = page === 'forfait'   ? 'block' : 'none';
   document.getElementById('page-ajouter').style.display   = page === 'ajouter'   ? 'block' : 'none';
+  document.getElementById('page-mouvement').style.display = page === 'mouvement' ? 'block' : 'none';
 
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
   document.getElementById('tab-hist').classList.toggle('active', page === 'historique');
   document.getElementById('tab-forf').classList.toggle('active', page === 'forfait');
   document.getElementById('tab-add').classList.toggle('active',  page === 'ajouter');
+  document.getElementById('tab-mvt').classList.toggle('active',  page === 'mouvement');
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
@@ -96,8 +83,12 @@ function showPage(page) {
   }
 
   if (page === 'ajouter') {
-    document.getElementById('add-no-inv').style.display = products.length ? 'none' : 'block';
-    buildAddExistingRow();
+    ensureStockLoadedForAjouter();
+  }
+
+  if (page === 'mouvement') {
+    buildMovementRow();
+    refreshMovementSource();
   }
 
 }

@@ -1,13 +1,12 @@
 
 
-// Append rows to the Dispensation sheet using the SIGNED-IN USER's OAuth token
+// Append rows to ANY spreadsheet/tab using the SIGNED-IN USER's OAuth token
 // (granted at login via the 'spreadsheets' scope). Because the write is made with
-// the user's own credentials, the edit is attributed to THEM in the sheet's
-// version history. Requires each allowed user to have Editor access to the sheet.
-// DISP_SHEET_ID / DISP_SHEET_TAB are defined in historique.js (available at call time).
-function appendRowsToSheet(rows, callback) {
-  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
-            '/values/' + encodeURIComponent(DISP_SHEET_TAB) +
+// the user's own credentials, the edit is attributed to THEM in version history.
+// Requires each allowed user to have Editor access to the target spreadsheet.
+function appendValues(spreadsheetId, tab, rows, callback) {
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId +
+            '/values/' + encodeURIComponent(tab) +
             '!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
   ensureFreshToken(function () {
     authFetch(url, {
@@ -31,6 +30,12 @@ function appendRowsToSheet(rows, callback) {
   });
 }
 
+// Convenience wrapper: append transaction rows to the Dispensation sheet.
+// DISP_SHEET_ID / DISP_SHEET_TAB are defined in historique.js (available at call time).
+function appendRowsToSheet(rows, callback) {
+  appendValues(DISP_SHEET_ID, DISP_SHEET_TAB, rows, callback);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function parsePrixUnit(raw) {
   var n = parseFloat((raw || '').toString().replace(/[^0-9.,]/g, '').replace(',', '.'));
@@ -40,6 +45,19 @@ function parsePrixUnit(raw) {
 function getProductByPDF(product, dose, format) {
   for (var i = 0; i < products.length; i++) {
     var p = products[i];
+    if (p.product === product && p.dose === dose && p.format === format) return p;
+  }
+  return null;
+}
+
+// A dispensation line draws from the forfait stock when its Forfaitaire box is
+// checked, otherwise from the normal stock. `products` is the normal (inventory)
+// list; forfaitView.products is the forfait list.
+function rowProducts(forfChecked) { return forfChecked ? forfaitView.products : products; }
+
+function lookupIn(list, product, dose, format) {
+  for (var i = 0; i < list.length; i++) {
+    var p = list[i];
     if (p.product === product && p.dose === dose && p.format === format) return p;
   }
   return null;
@@ -62,7 +80,7 @@ function updateTotal() {
 
     if (!selProd || !selProd.value) continue;
 
-    var p         = getProductByPDF(selProd.value, selDose ? selDose.value : '', selFmt ? selFmt.value : '');
+    var p         = lookupIn(rowProducts(forf.checked), selProd.value, selDose ? selDose.value : '', selFmt ? selFmt.value : '');
     var rawPrice  = p ? p.prixUnit || '' : '';
     var unitVal   = parsePrixUnit(rawPrice);
     var qtyVal    = parseInt(qty.value) || 0;
@@ -127,31 +145,47 @@ function addMedRow() {
   div.className = 'med-row';
   div.style.alignItems = 'flex-end';
 
+  // ── Forfaitaire (placed first; also chooses which stock the dropdowns draw from) ──
+  var forfaitWrap = document.createElement('div');
+  forfaitWrap.className = 'forfait-wrap';
+  forfaitWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;align-items:center;flex:0 0 auto';
+  var forfaitLabel = document.createElement('label');
+  forfaitLabel.className = 'med-lbl-forfait';
+  forfaitLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
+  forfaitLabel.textContent = tr('lblForfait');
+  var forfait = document.createElement('input');
+  forfait.type = 'checkbox'; forfait.className = 'med-forfait'; forfait.style.accentColor = '#185FA5';
+  forfaitWrap.appendChild(forfaitLabel);
+  forfaitWrap.appendChild(forfait);
+
   // ── Three cascading selects ──
   var prod = makeSelGroup(tr('lblMedProduct'), 'sel-product', tr('selectMedProduct'));
   var dose = makeSelGroup(tr('lblMedDose'),    'sel-dose',    tr('selectMedDose'));
   var fmt  = makeSelGroup(tr('lblMedFormat'),  'sel-format',  tr('selectMedFormat'));
-
   dose.sel.disabled = true;
   fmt.sel.disabled  = true;
-
-  // Populate product names (sorted, unique)
-  var productNames = [];
-  products.forEach(function(p) {
-    if (productNames.indexOf(p.product) === -1) productNames.push(p.product);
-  });
-  productNames.sort().forEach(function(name) {
-    var o = document.createElement('option'); o.value = name; o.textContent = name;
-    prod.sel.appendChild(o);
-  });
 
   // Unit price tag
   var priceTag = document.createElement('span');
   priceTag.className = 'unit-price-tag';
 
+  // Source list depends on the Forfaitaire checkbox (forfait stock vs normal stock).
+  function currentList() { return rowProducts(forfait.checked); }
+
+  // (Re)populate the product dropdown from the current source and reset the rest.
+  function fillProducts() {
+    prod.sel.innerHTML = '';
+    var def = document.createElement('option'); def.value = ''; def.textContent = tr('selectMedProduct'); prod.sel.appendChild(def);
+    var names = [];
+    currentList().forEach(function(p) { if (names.indexOf(p.product) === -1) names.push(p.product); });
+    names.sort().forEach(function(name) { var o = document.createElement('option'); o.value = name; o.textContent = name; prod.sel.appendChild(o); });
+    dose.sel.innerHTML = '<option value="">' + tr('selectMedDose') + '</option>';   dose.sel.disabled = true;
+    fmt.sel.innerHTML  = '<option value="">' + tr('selectMedFormat') + '</option>'; fmt.sel.disabled  = true;
+    priceTag.textContent = '';
+  }
+
   // Product → populate doses
   prod.sel.addEventListener('change', function() {
-    // reset dose & format
     dose.sel.innerHTML = ''; fmt.sel.innerHTML = '';
     var defD = document.createElement('option'); defD.value = ''; defD.textContent = tr('selectMedDose'); dose.sel.appendChild(defD);
     var defF = document.createElement('option'); defF.value = ''; defF.textContent = tr('selectMedFormat'); fmt.sel.appendChild(defF);
@@ -161,13 +195,12 @@ function addMedRow() {
     if (!prod.sel.value) { updateTotal(); return; }
 
     var doses = [];
-    products.forEach(function(p) {
+    currentList().forEach(function(p) {
       if (p.product === prod.sel.value && doses.indexOf(p.dose) === -1) doses.push(p.dose);
     });
     doses.forEach(function(d) {
       var o = document.createElement('option'); o.value = d; o.textContent = d || '—'; dose.sel.appendChild(o);
     });
-    // auto-select if only one option
     if (doses.length === 1) { dose.sel.value = doses[0]; dose.sel.dispatchEvent(new Event('change')); }
     else updateTotal();
   });
@@ -181,24 +214,35 @@ function addMedRow() {
     if (!dose.sel.value) { updateTotal(); return; }
 
     var fmts = [];
-    products.forEach(function(p) {
+    currentList().forEach(function(p) {
       if (p.product === prod.sel.value && p.dose === dose.sel.value && fmts.indexOf(p.format) === -1) fmts.push(p.format);
     });
     fmts.forEach(function(f) {
       var o = document.createElement('option'); o.value = f; o.textContent = f || '—'; fmt.sel.appendChild(o);
     });
-    // auto-select if only one option
     if (fmts.length === 1) { fmt.sel.value = fmts[0]; fmt.sel.dispatchEvent(new Event('change')); }
     else updateTotal();
   });
 
   // Format → show price
   fmt.sel.addEventListener('change', function() {
-    var p   = getProductByPDF(prod.sel.value, dose.sel.value, fmt.sel.value);
+    var p   = lookupIn(currentList(), prod.sel.value, dose.sel.value, fmt.sel.value);
     var raw = p ? p.prixUnit || '' : '';
     priceTag.textContent = raw ? tr('lblUnitPrice') + ' ' + raw : '';
     updateTotal();
   });
+
+  // Toggling Forfaitaire switches the source list (loading forfait stock if needed).
+  forfait.addEventListener('change', function() {
+    if (forfait.checked && !forfaitView.products.length) {
+      forfaitView.load(function() { fillProducts(); updateTotal(); });
+    } else {
+      fillProducts();
+    }
+    updateTotal();
+  });
+
+  fillProducts();
 
   // ── Quantity ──
   var qtyWrap = document.createElement('div');
@@ -214,20 +258,6 @@ function addMedRow() {
   qtyWrap.appendChild(qtyLabel);
   qtyWrap.appendChild(qty);
 
-  // ── Forfaitaire ──
-  var forfaitWrap = document.createElement('div');
-  forfaitWrap.className = 'forfait-wrap';
-  forfaitWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;align-items:center;flex:0 0 auto';
-  var forfaitLabel = document.createElement('label');
-  forfaitLabel.className = 'med-lbl-forfait';
-  forfaitLabel.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
-  forfaitLabel.textContent = tr('lblForfait');
-  var forfait = document.createElement('input');
-  forfait.type = 'checkbox'; forfait.className = 'med-forfait'; forfait.style.accentColor = '#185FA5';
-  forfait.addEventListener('change',updateTotal)
-  forfaitWrap.appendChild(forfaitLabel);
-  forfaitWrap.appendChild(forfait);
-
   // ── Remove button ──
   var removeBtn = document.createElement('button');
   removeBtn.className = 'remove-btn';
@@ -236,12 +266,13 @@ function addMedRow() {
     if (container.children.length > 1) { container.removeChild(div); updateTotal(); }
   };
 
+  // Order: Forfaitaire, Product, Dose, Format, Quantity, price, remove.
+  div.appendChild(forfaitWrap);
   div.appendChild(prod.wrap);
   div.appendChild(dose.wrap);
   div.appendChild(fmt.wrap);
   div.appendChild(qtyWrap);
   div.appendChild(priceTag);
-  div.appendChild(forfaitWrap);
   div.appendChild(removeBtn);
   container.appendChild(div);
 }
@@ -283,10 +314,11 @@ function submitDispensation() {
     var forfait = medRows[i].querySelector('.med-forfait'); 
     if (!selProd || !selProd.value) { valid = false; break; }
 
-    // Require a real product-dose-format match. This blocks lines where the
-    // product has several doses/formats but the user left those dropdowns on
-    // their placeholder, which would create rows not linkable to a product.
-    var p         = getProductByPDF(selProd.value, selDose.value, selFmt.value);
+    // Require a real product-dose-format match in the row's stock (normal or
+    // forfait). This blocks lines where the product has several doses/formats but
+    // the user left those dropdowns on their placeholder, which would create rows
+    // not linkable to a product.
+    var p         = lookupIn(rowProducts(forfait.checked), selProd.value, selDose.value, selFmt.value);
     if (!p) { valid = false; errMsg = 'toastSpecify'; break; }
     var unitVal   = parsePrixUnit(p ? p.prixUnit : '');
     var qtyVal    = parseInt(qty.value) || 0;

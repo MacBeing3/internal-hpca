@@ -4,8 +4,8 @@ var DISP_SHEET_TAB = 'Dispensation';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 var histRows       = [];   // all rows: {rowIndex, dossier, date, time, product, dose, format, unitPrice, qty, lineTotal, forfait}
-var histSortCol    = null;
-var histSortDir    = 1;
+var histSortCol    = 'date'; // default: sort by date…
+var histSortDir    = -1;     // …descending (newest first)
 var pendingDelete  = null; // {rowIndex, display}
 
 // ── Load ──────────────────────────────────────────────────────────────────────

@@ -85,7 +85,9 @@ function createSheetView(cfg) {
   }
 
   // ── Load ──
-  view.load = function () {
+  // onDone (optional) runs after the data is loaded (or after an error), so other
+  // pages — e.g. Mouvement — can rebuild their dropdowns once products are ready.
+  view.load = function (onDone) {
     var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
               '/values/' + cfg.tab + '!A:T';
     showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
@@ -99,9 +101,11 @@ function createSheetView(cfg) {
             return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
           });
           processRows(dataRows);
+          if (typeof onDone === 'function') onDone();
         })
         .catch(function () {
           showState('<div style="font-size:32px">❌</div><div>' + tr('errEmpty') + '</div>');
+          if (typeof onDone === 'function') onDone();
         });
     });
   };
@@ -216,36 +220,31 @@ function createSheetView(cfg) {
     var html = '';
     cats.forEach(function (cat) {
       var catRows = rows.filter(function (p) { return p.category === cat; });
-      if (cat) html += '<tr class="cat-row"><td colspan="19">' + cat + '</td></tr>';
+      if (cat) html += '<tr class="cat-row"><td colspan="12">' + cat + '</td></tr>';
       catRows.forEach(function (p) {
         var s  = getStockStatus(p);
         var rb = s === 'critical' ? 'background:#FFF5F5' : s === 'low' ? 'background:#FFFBF0' : '';
+        // Reduced column set (12): produit, dose, format, exp, stock actuel,
+        // statut, cons mens, mois, quantité min, essentiel, système, famille.
         html += '<tr style="' + rb + '">' +
-          '<td class="code-cell">'    + fmt(p.code)     + '</td>' +
           '<td class="product-cell">' + fmt(p.product)  + '</td>' +
           '<td>'  + fmt(p.dose)   + '</td>' +
           '<td>'  + (p.format ? '<span class="badge badge-neutral">' + p.format + '</span>' : '—') + '</td>' +
           '<td>'  + expBadge(p.dateExp) + '</td>' +
-          '<td class="num-cell">' + fmt(p.stockInit)  + '</td>' +
-          '<td>'  + fmt(p.pa)     + '</td>' +
-          '<td class="num-cell">' + fmt(p.prixUnit)   + '</td>' +
-          '<td class="num-cell">' + fmt(p.sorties)    + '</td>' +
-          '<td class="num-cell">' + fmt(p.change)     + '</td>' +
           '<td class="num-cell">' + stockBar(p) + fmt(p.stockActuel) + '</td>' +
           '<td>'  + statusBadge(p) + '</td>' +
           '<td class="num-cell">' + fmt(p.consEstMo)  + '</td>' +
           '<td class="num-cell">' + (p.moRest !== '' ? Number(p.moRest).toFixed(1) : '—') + '</td>' +
           '<td class="num-cell">' + fmt(p.quantMin)   + '</td>' +
-          '<td class="num-cell">' + (p.valeur !== '' ? Number(p.valeur).toLocaleString() + ' FCFA' : '—') + '</td>' +
-          '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
           '<td>'  + fmt(p.essentiel) + '</td>' +
+          '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
           '<td>'  + fmt(p.famille)   + '</td>' +
         '</tr>';
       });
     });
 
     $('table-body').innerHTML =
-      html || '<tr><td colspan="19" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
+      html || '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
               tr('noResults') + '</td></tr>';
   };
 
@@ -264,13 +263,7 @@ function createSheetView(cfg) {
     setText('charger-inv', 'updInv');
     var si = $('search-input'); if (si) si.placeholder = tr('searchPlaceholder');
 
-    var cols = ['Code','Product','Dose','Format','DateExp','StockInit','Pa','PrixUnit',
-                'Sorties','Change','StockActuel','Obs','ConsEstMo','MoRest','QuantMin',
-                'Valeur','EtatsUnis','Essentiel','Famille'];
-    cols.forEach(function (c) {
-      var el = $('h-' + c.charAt(0).toLowerCase() + c.slice(1));
-      if (el) el.textContent = tr('h' + c) + ' ↕';
-    });
+    // Table headers are now static French (see index.html) — not translated here.
 
     if (view.products.length) {
       view.render();

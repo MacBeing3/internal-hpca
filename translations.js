@@ -2,7 +2,8 @@ var T = {
   fr: {
     appTitle:'Inventaire des Médicaments',
     appSub:'Gestion des stocks — Pharmacie',
-    tabInv:'Inventaire',
+    // Display name "Stock Normal" maps to the Pharmacie sheet (backend unchanged).
+    tabInv:'Stock Normal',
     tabDisp:'Dispensation',
 
     // Stats
@@ -119,7 +120,7 @@ var T = {
   en: {
     appTitle:'Medication Inventory',
     appSub:'Stock Management — Pharmacy',
-    tabInv:'Inventory',
+    tabInv:'Normal Stock',
     tabDisp:'Dispensation',
 
     // Stats

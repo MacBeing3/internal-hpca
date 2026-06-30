@@ -47,13 +47,17 @@
   </div>
 </div>
 
-<!-- Page tabs -->
+<!-- Page tabs.
+     Display names: "Stock Normal" = the inventory/Pharmacie sheet (page id 'inventory'),
+     "Stock Forfaitaire" = the Pharm FORF sheet (page id 'forfait'). The page ids and
+     backend sheet/variable names are intentionally left unchanged. -->
 <div class="page-tabs">
-  <button class="page-tab active" id="tab-inv" onclick="showPage('inventory')">Inventaire</button>
+  <button class="page-tab active" id="tab-inv" onclick="showPage('inventory')">Stock Normal</button>
+  <button class="page-tab" id="tab-forf" onclick="showPage('forfait')">Stock Forfaitaire</button>
   <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
-  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
-  <button class="page-tab" id="tab-forf" onclick="showPage('forfait')">Forfait</button>
   <button class="page-tab" id="tab-add" onclick="showPage('ajouter')">Ajouter</button>
+  <button class="page-tab" id="tab-mvt" onclick="showPage('mouvement')">Mouvement</button>
+  <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
 
 
 </div>
@@ -102,25 +106,18 @@
     <table id="inv-table">
       <thead>
         <tr>
-          <th data-col="code"        id="h-code">Code ↕</th>
-          <th data-col="product"     id="h-product">Produit ↕</th>
-          <th data-col="dose"        id="h-dose">Dose ↕</th>
-          <th data-col="format"      id="h-format">Fmt ↕</th>
-          <th data-col="dateExp"     id="h-dateExp">Exp. ↕</th>
-          <th data-col="stockInit"   id="h-stockInit">Init. ↕</th>
-          <th data-col="pa"          id="h-pa">PA ↕</th>
-          <th data-col="prixUnit"    id="h-prixUnit">Prix/u ↕</th>
-          <th data-col="sorties"     id="h-sorties">Sort. ↕</th>
-          <th data-col="change"      id="h-change">Chg ↕</th>
-          <th data-col="stockActuel" id="h-stockActuel">Stock act. ↕</th>
-          <th data-col="obs"         id="h-obs">Statut ↕</th>
-          <th data-col="consEstMo"   id="h-consEstMo">Cons/mo ↕</th>
-          <th data-col="moRest"      id="h-moRest">Mo rest. ↕</th>
-          <th data-col="quantMin"    id="h-quantMin">Q.min ↕</th>
-          <th data-col="valeur"      id="h-valeur">Valeur ↕</th>
-          <th data-col="etatsUnis"   id="h-etatsUnis">EU ↕</th>
-          <th data-col="essentiel"   id="h-essentiel">Essent. ↕</th>
-          <th data-col="famille"     id="h-famille">Famille ↕</th>
+          <th data-col="product">Produit ↕</th>
+          <th data-col="dose">Dose ↕</th>
+          <th data-col="format">Format ↕</th>
+          <th data-col="dateExp">Exp ↕</th>
+          <th data-col="stockActuel">Stock actuel ↕</th>
+          <th data-col="obs">Statut ↕</th>
+          <th data-col="consEstMo">Cons mens ↕</th>
+          <th data-col="moRest">Mois ↕</th>
+          <th data-col="quantMin">Quantité min ↕</th>
+          <th data-col="essentiel">Essentiel ↕</th>
+          <th data-col="etatsUnis">Système ↕</th>
+          <th data-col="famille">Famille ↕</th>
         </tr>
       </thead>
       <tbody id="table-body"></tbody>
@@ -272,25 +269,18 @@
     <table id="inv-table-forf">
       <thead>
         <tr>
-          <th data-col="code"        id="h-code-forf">Code ↕</th>
-          <th data-col="product"     id="h-product-forf">Produit ↕</th>
-          <th data-col="dose"        id="h-dose-forf">Dose ↕</th>
-          <th data-col="format"      id="h-format-forf">Fmt ↕</th>
-          <th data-col="dateExp"     id="h-dateExp-forf">Exp. ↕</th>
-          <th data-col="stockInit"   id="h-stockInit-forf">Init. ↕</th>
-          <th data-col="pa"          id="h-pa-forf">PA ↕</th>
-          <th data-col="prixUnit"    id="h-prixUnit-forf">Prix/u ↕</th>
-          <th data-col="sorties"     id="h-sorties-forf">Sort. ↕</th>
-          <th data-col="change"      id="h-change-forf">Chg ↕</th>
-          <th data-col="stockActuel" id="h-stockActuel-forf">Stock act. ↕</th>
-          <th data-col="obs"         id="h-obs-forf">Statut ↕</th>
-          <th data-col="consEstMo"   id="h-consEstMo-forf">Cons/mo ↕</th>
-          <th data-col="moRest"      id="h-moRest-forf">Mo rest. ↕</th>
-          <th data-col="quantMin"    id="h-quantMin-forf">Q.min ↕</th>
-          <th data-col="valeur"      id="h-valeur-forf">Valeur ↕</th>
-          <th data-col="etatsUnis"   id="h-etatsUnis-forf">EU ↕</th>
-          <th data-col="essentiel"   id="h-essentiel-forf">Essent. ↕</th>
-          <th data-col="famille"     id="h-famille-forf">Famille ↕</th>
+          <th data-col="product">Produit ↕</th>
+          <th data-col="dose">Dose ↕</th>
+          <th data-col="format">Format ↕</th>
+          <th data-col="dateExp">Exp ↕</th>
+          <th data-col="stockActuel">Stock actuel ↕</th>
+          <th data-col="obs">Statut ↕</th>
+          <th data-col="consEstMo">Cons mens ↕</th>
+          <th data-col="moRest">Mois ↕</th>
+          <th data-col="quantMin">Quantité min ↕</th>
+          <th data-col="essentiel">Essentiel ↕</th>
+          <th data-col="etatsUnis">Système ↕</th>
+          <th data-col="famille">Famille ↕</th>
         </tr>
       </thead>
       <tbody id="table-body-forf"></tbody>
@@ -299,71 +289,80 @@
 </div>
 
 <!-- ══ AJOUTER (ADD STOCK) PAGE ══ -->
-<!-- Records a stock addition into the Dispensation sheet with col A = TRUE. -->
+<!-- Two sections, each with multiple rows (like Dispensation). Existing meds write
+     an 'ajouter' transaction (A=TRUE) to the Dispensation sheet; new meds are
+     appended directly to the inventory sheet (Pharmacie or Pharm FORF per the
+     Forfaitaire checkbox). Text hardcoded in French. Logic in addstock.js. -->
 <div id="page-ajouter" style="display:none">
   <div class="disp-page">
-    <h2 id="add-title">Ajouter du stock</h2>
+    <h2>Ajouter du stock</h2>
 
     <div id="add-no-inv" class="no-inventory-notice" style="display:none">
-      ⚠️ <span id="add-no-inv-msg">L'inventaire n'est pas encore chargé.</span>
+      ⚠️ <span>Le stock n'est pas encore chargé — chargez le Stock Normal et/ou le Stock Forfaitaire pour les médicaments existants.</span>
     </div>
 
-    <!-- Mode: existing vs new medication -->
+    <!-- Existing medications (cascading dropdowns) -->
     <div class="form-section">
-      <h3 id="add-section-mode">Type d'ajout</h3>
-      <div class="form-row" style="gap:24px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-          <input type="radio" name="add-mode" value="existing" checked onchange="setAddMode('existing')"/>
-          <span id="add-mode-existing">Médicament existant</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
-          <input type="radio" name="add-mode" value="new" onchange="setAddMode('new')"/>
-          <span id="add-mode-new">Nouveau médicament</span>
-        </label>
-      </div>
+      <h3>Médicaments existants</h3>
+      <div id="add-existing-rows"></div>
+      <button class="add-med-btn" onclick="addExistingStockRow()">+ Ajouter un médicament</button>
     </div>
 
-    <!-- Existing medication: cascading dropdowns (built by addstock.js) -->
-    <div class="form-section" id="add-existing-section">
-      <h3 id="add-section-med">Médicament</h3>
-      <div class="med-row" id="add-existing-row" style="align-items:flex-end"></div>
-    </div>
-
-    <!-- New medication: free-text fields -->
-    <div class="form-section" id="add-new-section" style="display:none">
-      <h3 id="add-section-newmed">Nouveau médicament</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label id="lbl-add-product">Produit</label>
-          <input type="text" id="add-new-product" placeholder="Nom du médicament"/>
-        </div>
-        <div class="form-group">
-          <label id="lbl-add-dose">Dose</label>
-          <input type="text" id="add-new-dose"/>
-        </div>
-        <div class="form-group">
-          <label id="lbl-add-format">Format</label>
-          <input type="text" id="add-new-format"/>
-        </div>
-        <div class="form-group">
-          <label id="lbl-add-price">Prix unitaire</label>
-          <input type="number" min="0" step="any" id="add-new-price"/>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quantity (shared by both modes) -->
+    <!-- New medications (free text → appended to the inventory sheet) -->
     <div class="form-section">
-      <h3 id="add-section-qty">Quantité ajoutée</h3>
-      <div class="form-row">
-        <div class="form-group" style="max-width:140px">
-          <label id="lbl-add-qty">Quantité</label>
-          <input type="number" min="1" step="1" value="1" id="add-qty"/>
-        </div>
-      </div>
+      <h3>Nouveaux médicaments</h3>
+      <div id="add-new-rows"></div>
+      <button class="add-med-btn" onclick="addNewStockRow()">+ Ajouter un médicament</button>
     </div>
 
     <button class="submit-btn" onclick="submitAddStock()" id="btn-add-submit">Ajouter au stock</button>
+  </div>
+</div>
+
+<!-- ══ MOUVEMENT (STOCK MOVEMENT) PAGE ══ -->
+<!-- Moves stock between Inventaire and Forfait. Writes a depense + an ajouter to
+     the Dispensation sheet (see movement.js). Text hardcoded in French. -->
+<div id="page-mouvement" style="display:none">
+  <div class="disp-page">
+    <h2>Mouvement de stock</h2>
+
+    <!-- Direction -->
+    <div class="form-section">
+      <h3>Sens du mouvement</h3>
+      <div class="form-row" style="gap:24px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="mvt-dir" value="inv2forf" checked onchange="setMovementDirection('inv2forf')"/>
+          <span>Inventaire → Forfait</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="mvt-dir" value="forf2inv" onchange="setMovementDirection('forf2inv')"/>
+          <span>Forfait → Inventaire</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="mvt-no-data" class="no-inventory-notice" style="display:none">
+      ⚠️ <span id="mvt-no-data-msg">Chargement de l'inventaire…</span>
+    </div>
+
+    <!-- Medication (cascading dropdowns from the source stock, built by movement.js) -->
+    <div class="form-section">
+      <h3>Médicament à déplacer</h3>
+      <div class="med-row" id="mvt-row" style="align-items:flex-end"></div>
+    </div>
+
+    <!-- Quantity -->
+    <div class="form-section">
+      <h3>Quantité à déplacer</h3>
+      <div class="form-row">
+        <div class="form-group" style="max-width:140px">
+          <label>Quantité</label>
+          <input type="number" min="1" step="1" value="1" id="mvt-qty"/>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="submitMovement()" id="btn-mvt-submit">Déplacer le stock</button>
   </div>
 </div>
 
@@ -393,6 +392,7 @@
 <script src="dispensation.js"></script>
 <script src="historique.js"></script>
 <script src="addstock.js"></script>
+<script src="movement.js"></script>
 <script src="main.js"></script>
 <script>
 // Dev-server heartbeat: tells serve.py a tab is still open so it can auto-shut
