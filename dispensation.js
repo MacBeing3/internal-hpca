@@ -324,7 +324,13 @@ function submitDispensation() {
       showToast(tr('toastError'), 'error');
     }
     btn.disabled = false;
-    loadInventory();
-    loadHistorique();
+
+    setTimeout(() => {
+        inventoryView.load();
+        forfaitView.load();
+        console.log("inventory refreshed")
+      }, 10000); //10 seconds
+
+
   });
 }

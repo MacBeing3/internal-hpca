@@ -146,4 +146,10 @@ function submitAddStock() {
     }
     btn.disabled = false;
   });
+  
+  setTimeout(() => {
+      inventoryView.load();
+      forfaitView.load();
+      console.log("inventory refreshed")
+    }, 10000); //10 seconds
 }
