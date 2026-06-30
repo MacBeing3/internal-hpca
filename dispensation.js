@@ -17,18 +17,22 @@ function appendValues(spreadsheetId, tab, rows, callback) {
       .then(function (res) {
         // Success is determined by the HTTP status alone — don't require the
         // body to parse (a parse hiccup must not masquerade as a failed write).
-        if (res.ok) { callback(true); return; }
+        // 403 means the user has read-only access to the sheet -> 'forbidden'.
+        if (res.ok) { callback(true, ''); return; }
         return res.text().then(function (t) {
           console.error('Sheets append failed:', res.status, t);
-          callback(false);
+          callback(false, res.status === 403 ? 'forbidden' : 'error');
         });
       })
       .catch(function (err) {
         console.error('Sheets append error:', err);
-        callback(false);
+        callback(false, 'error');
       });
   });
 }
+
+// Shown when a write is rejected because the signed-in user only has read access.
+var MSG_NO_WRITE_ACCESS = "Accès refusé : vous n'avez pas les droits d'écriture sur la feuille. Contactez l'administrateur pour obtenir un accès « Éditeur ».";
 
 // Convenience wrapper: append transaction rows to the Dispensation sheet.
 // DISP_SHEET_ID / DISP_SHEET_TAB are defined in historique.js (available at call time).
@@ -344,7 +348,7 @@ function submitDispensation() {
 
   var btn = document.getElementById('btn-submit');
   btn.disabled = true;
-  appendRowsToSheet(rows, function (ok) {
+  appendRowsToSheet(rows, function (ok, reason) {
     if (ok) {
       showToast(tr('toastSuccess'), 'success');
       document.getElementById('inp-dossier').value = '';
@@ -353,7 +357,7 @@ function submitDispensation() {
       document.getElementById('total-section').style.display = 'none';
       addMedRow();
     } else {
-      showToast(tr('toastError'), 'error');
+      showToast(reason === 'forbidden' ? MSG_NO_WRITE_ACCESS : tr('toastError'), 'error');
     }
     btn.disabled = false;
 

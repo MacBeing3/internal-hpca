@@ -41,19 +41,38 @@ thead th:nth-child(10){width:36px}thead th:nth-child(11){width:68px}thead th:nth
 thead th:nth-child(13){width:48px}thead th:nth-child(14){width:44px}thead th:nth-child(15){width:38px}
 thead th:nth-child(16){width:68px}thead th:nth-child(17){width:34px}thead th:nth-child(18){width:44px}
 thead th:nth-child(19){width:90px}
-.cat-row td{background:#E6F1FB;color:#0C447C;font-weight:500;font-size:10px;padding:4px 6px;letter-spacing:.05em;border-top:0.5px solid #B5D4F4;border-bottom:0.5px solid #B5D4F4}
+
+/* ── Inventory column widths (Stock Normal #inv-table + Stock Forfaitaire #inv-table-forf) ──
+   table-layout is fixed, so these px values directly set each column's width.
+   This is the place to tweak spacing by trial-and-error. nth-child = column:
+   1 Produit · 2 Dose · 3 Format · 4 Exp · 5 Stock actuel · 6 Statut
+   · 7 Système · 8 Famille · 9 Cons mens · 10 Mois · 11 Quantité min · 12 Essentiel
+   (Scoped to the two inventory tables so Historique is unaffected.) */
+#inv-table thead th:nth-child(1),  #inv-table-forf thead th:nth-child(1)  {width:120px} /* Produit      */
+#inv-table thead th:nth-child(2),  #inv-table-forf thead th:nth-child(2)  {width:42px}  /* Dose         */
+#inv-table thead th:nth-child(3),  #inv-table-forf thead th:nth-child(3)  {width:50px}  /* Format       */
+#inv-table thead th:nth-child(4),  #inv-table-forf thead th:nth-child(4)  {width:36px}  /* Exp          */
+#inv-table thead th:nth-child(5),  #inv-table-forf thead th:nth-child(5)  {width:72px}  /* Stock actuel */
+#inv-table thead th:nth-child(6),  #inv-table-forf thead th:nth-child(6)  {width:54px}  /* Statut       */
+#inv-table thead th:nth-child(7),  #inv-table-forf thead th:nth-child(7)  {width:35px}  /* Etas Unis    */
+#inv-table thead th:nth-child(8),  #inv-table-forf thead th:nth-child(8)  {width:100px}  /* Famille      */
+#inv-table thead th:nth-child(9),  #inv-table-forf thead th:nth-child(9)  {width:42px}  /* Cons mens    */
+#inv-table thead th:nth-child(10), #inv-table-forf thead th:nth-child(10) {width:36px}  /* Mois         */
+#inv-table thead th:nth-child(11), #inv-table-forf thead th:nth-child(11) {width:62px}  /* Quantité min */
+#inv-table thead th:nth-child(12), #inv-table-forf thead th:nth-child(12) {width:36px}  /* Essentiel    */
+.cat-row td{background:#E6F1FB;color:#0C447C;font-weight:500;font-size:16px;padding:4px 6px;letter-spacing:.05em;border-top:0.5px solid #B5D4F4;border-bottom:0.5px solid #B5D4F4}
 tbody tr{border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--color-background-secondary,#f0efe8)}
-tbody td{padding:5px;vertical-align:middle;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tbody td{padding:5px;vertical-align:middle;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .code-cell{color:var(--color-text-secondary,#6b6b67);font-size:10px;font-weight:500}
 .product-cell{font-weight:500}
 .num-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.badge{display:inline-block;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:500}
+.badge{display:block;width:fit-content;margin:0 auto;padding:1px 5px;border-radius:4px;font-size:12px;font-weight:500}
 .badge-ok{background:#EAF3DE;color:#27500A}.badge-warn{background:#FAEEDA;color:#633806}
 .badge-danger{background:#FCEBEB;color:#791F1F}.badge-info{background:#E6F1FB;color:#0C447C}
 .badge-neutral{background:#F1EFE8;color:#444441}
-.stock-bar-wrap{width:36px;display:inline-block;vertical-align:middle;margin-right:3px}
+.stock-bar-wrap{width:36px;display:inline-block;vertical-align:middle;margin-left:10px}
 .stock-bar{height:5px;border-radius:3px;background:#D3D1C7}
 .stock-fill{height:5px;border-radius:3px}
 .filter-bar{background:var(--color-background-tertiary,#f5f5f3);position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:10px 20px 4px;flex-wrap:wrap}

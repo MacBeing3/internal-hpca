@@ -33,6 +33,7 @@ function stockBar(p) {
   if (p.stockInit === '' || p.stockActuel === '') return '';
   var pct   = p.stockInit > 0 ? Math.min(100, Math.round(p.stockActuel / p.stockInit * 100)) : 0;
   var s     = getStockStatus(p);
+  var pct   = s === 'critical' ? 10 : s === 'low' ? 45 : 85;
   var color = s === 'critical' ? '#E24B4A' : s === 'low' ? '#EF9F27' : '#639922';
   return '<div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:' +
          pct + '%;background:' + color + '"></div></div></div>';
@@ -224,21 +225,22 @@ function createSheetView(cfg) {
       catRows.forEach(function (p) {
         var s  = getStockStatus(p);
         var rb = s === 'critical' ? 'background:#FFF5F5' : s === 'low' ? 'background:#FFFBF0' : '';
-        // Reduced column set (12): produit, dose, format, exp, stock actuel,
-        // statut, cons mens, mois, quantité min, essentiel, système, famille.
+        // Reduced column set (12), order must match the <thead> in index.html:
+        // produit, dose, format, exp, stock actuel, statut, système, famille,
+        // cons mens, mois, quantité min, essentiel.
         html += '<tr style="' + rb + '">' +
           '<td class="product-cell">' + fmt(p.product)  + '</td>' +
           '<td>'  + fmt(p.dose)   + '</td>' +
           '<td>'  + (p.format ? '<span class="badge badge-neutral">' + p.format + '</span>' : '—') + '</td>' +
           '<td>'  + expBadge(p.dateExp) + '</td>' +
-          '<td class="num-cell">' + stockBar(p) + fmt(p.stockActuel) + '</td>' +
+          '<td class="num-cell">' + fmt(p.stockActuel) + stockBar(p) + '</td>' +
           '<td>'  + statusBadge(p) + '</td>' +
+          '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
+          '<td>'  + fmt(p.famille)   + '</td>' +
           '<td class="num-cell">' + fmt(p.consEstMo)  + '</td>' +
           '<td class="num-cell">' + (p.moRest !== '' ? Number(p.moRest).toFixed(1) : '—') + '</td>' +
           '<td class="num-cell">' + fmt(p.quantMin)   + '</td>' +
           '<td>'  + fmt(p.essentiel) + '</td>' +
-          '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
-          '<td>'  + fmt(p.famille)   + '</td>' +
         '</tr>';
       });
     });

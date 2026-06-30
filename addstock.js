@@ -159,13 +159,14 @@ function resetAddStock() {
 }
 
 // Run several append tasks ({id, tab, rows}); report success only if all succeed.
+// Surfaces a 'forbidden' reason if any task was rejected for lack of write access.
 function runAppends(tasks, callback) {
-  if (!tasks.length) { callback(true); return; }
-  var remaining = tasks.length, allOk = true;
+  if (!tasks.length) { callback(true, ''); return; }
+  var remaining = tasks.length, allOk = true, reason = '';
   tasks.forEach(function (t) {
-    appendValues(t.id, t.tab, t.rows, function (ok) {
-      if (!ok) allOk = false;
-      if (--remaining === 0) callback(allOk);
+    appendValues(t.id, t.tab, t.rows, function (ok, r) {
+      if (!ok) { allOk = false; if (r === 'forbidden') reason = 'forbidden'; else if (!reason) reason = r; }
+      if (--remaining === 0) callback(allOk, reason);
     });
   });
 }
@@ -250,7 +251,7 @@ function submitAddStock() {
 
   var btn = document.getElementById('btn-add-submit');
   btn.disabled = true;
-  runAppends(tasks, function (ok) {
+  runAppends(tasks, function (ok, reason) {
     if (ok) {
       showToast('Stock ajouté avec succès.', 'success');
       resetAddStock();
@@ -258,7 +259,7 @@ function submitAddStock() {
       loadForfait();
       loadHistorique();
     } else {
-      showToast("Erreur lors de l'ajout. Veuillez réessayer.", 'error');
+      showToast(reason === 'forbidden' ? MSG_NO_WRITE_ACCESS : "Erreur lors de l'ajout. Veuillez réessayer.", 'error');
     }
     btn.disabled = false;
   });

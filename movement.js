@@ -171,7 +171,7 @@ function submitMovement() {
 
   var btn = document.getElementById('btn-mvt-submit');
   btn.disabled = true;
-  appendRowsToSheet([depenseRow, ajouterRow], function (ok) {
+  appendRowsToSheet([depenseRow, ajouterRow], function (ok, reason) {
     if (ok) {
       showToast('Mouvement enregistré avec succès.', 'success');
       document.getElementById('mvt-qty').value = '1';
@@ -181,7 +181,7 @@ function submitMovement() {
       loadHistorique();
       buildMovementRow();
     } else {
-      showToast('Erreur lors du mouvement. Veuillez réessayer.', 'error');
+      showToast(reason === 'forbidden' ? MSG_NO_WRITE_ACCESS : 'Erreur lors du mouvement. Veuillez réessayer.', 'error');
     }
     btn.disabled = false;
   });
