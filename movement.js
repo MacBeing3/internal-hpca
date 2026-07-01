@@ -63,7 +63,7 @@ function buildMovementRow() {
   container.innerHTML = '';
   var list = mvtSourceView().products;
 
-  var prod = makeSelGroup('Produit', 'mvt-sel-product', '-- Produit --');
+  var prod = makeProductCombo('Produit', 'mvt-sel-product', '-- Produit --');
   var dose = makeSelGroup('Dose',    'mvt-sel-dose',    '-- Dose --');
   var fmt  = makeSelGroup('Format',  'mvt-sel-format',  '-- Format --');
   dose.sel.disabled = true;
@@ -74,11 +74,9 @@ function buildMovementRow() {
 
   var names = [];
   list.forEach(function (p) { if (names.indexOf(p.product) === -1) names.push(p.product); });
-  names.sort().forEach(function (n) {
-    var o = document.createElement('option'); o.value = n; o.textContent = n; prod.sel.appendChild(o);
-  });
+  prod.setOptions(names.sort());
 
-  prod.sel.addEventListener('change', function () {
+  prod.onChange(function () {
     dose.sel.innerHTML = ''; fmt.sel.innerHTML = '';
     var dd = document.createElement('option'); dd.value = ''; dd.textContent = '-- Dose --';   dose.sel.appendChild(dd);
     var df = document.createElement('option'); df.value = ''; df.textContent = '-- Format --'; fmt.sel.appendChild(df);

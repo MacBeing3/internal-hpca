@@ -122,5 +122,10 @@ select.filter-sel{padding:6px 10px;border:0.5px solid var(--color-border-seconda
 .toast.success{background:#3B6D11}
 .toast.error{background:#A32D2D}
 .med-select{flex:1;min-width:100px;padding:6px 8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#1a1a18);font-size:12px;font-family:inherit}
+
+/* Type-to-filter product picker (see makeProductCombo) */
+.combo-panel{position:absolute;top:100%;left:0;right:0;z-index:60;max-height:220px;overflow-y:auto;background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-top:none;border-radius:0 0 6px 6px;box-shadow:0 6px 16px rgba(0,0,0,.15);display:none}
+.combo-item{padding:6px 8px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.combo-item:hover{background:#E6F1FB}
 .med-select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
 .med-select:disabled{opacity:.45;cursor:not-allowed}

@@ -64,7 +64,7 @@ function addExistingStockRow() {
   div.className = 'med-row';
   div.style.alignItems = 'flex-end';
 
-  var prod = makeSelGroup('Produit', 'add-ex-product', '-- Produit --');
+  var prod = makeProductCombo('Produit', 'add-ex-product', '-- Produit --');
   var dose = makeSelGroup('Dose',    'add-ex-dose',    '-- Dose --');
   var fmt  = makeSelGroup('Format',  'add-ex-format',  '-- Format --');
   dose.sel.disabled = true; fmt.sel.disabled = true;
@@ -78,17 +78,15 @@ function addExistingStockRow() {
   function currentList() { return forf.checked ? forfaitView.products : inventoryView.products; }
 
   function fillProducts() {
-    prod.sel.innerHTML = '';
-    var def = document.createElement('option'); def.value = ''; def.textContent = '-- Produit --'; prod.sel.appendChild(def);
     var names = [];
     currentList().forEach(function (p) { if (names.indexOf(p.product) === -1) names.push(p.product); });
-    names.sort().forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; prod.sel.appendChild(o); });
+    prod.setOptions(names.sort());
     dose.sel.innerHTML = '<option value="">-- Dose --</option>';   dose.sel.disabled = true;
     fmt.sel.innerHTML  = '<option value="">-- Format --</option>'; fmt.sel.disabled  = true;
     priceTag.textContent = '';
   }
 
-  prod.sel.addEventListener('change', function () {
+  prod.onChange(function () {
     dose.sel.innerHTML = '<option value="">-- Dose --</option>';
     fmt.sel.innerHTML  = '<option value="">-- Format --</option>';
     dose.sel.disabled = !prod.sel.value; fmt.sel.disabled = true; priceTag.textContent = '';

@@ -143,6 +143,94 @@ function makeSelGroup(labelText, cls, placeholder) {
   return { wrap: wrap, sel: sel, lbl: lbl };
 }
 
+// Accent-insensitive normalisation: "Café" -> "cafe" (so e === é when filtering).
+function comboNorm(s) {
+  return (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+// A type-to-filter product picker used in place of the giant <select>. Exposes a
+// select-like interface so the existing cascades barely change:
+//   .wrap            element to append
+//   .sel             the <input> (its .value is the chosen product; carries `cls`
+//                    so querySelector('.<cls>') still works)
+//   .setOptions(arr) sets the filterable list of product names
+//   .onChange(cb)    fires when the committed product changes (typing, pick, blur)
+function makeProductCombo(labelText, cls, placeholder) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px;max-width:200px';
+
+  var lbl = document.createElement('label');
+  lbl.style.cssText = 'font-size:11px;font-weight:500;color:var(--color-text-secondary,#6b6b67)';
+  lbl.textContent = labelText;
+
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'med-select ' + cls;
+  input.placeholder = placeholder;
+  input.autocomplete = 'off';
+
+  var panel = document.createElement('div');
+  panel.className = 'combo-panel';
+
+  var names = [];
+  var cbs   = [];
+  function fire() { cbs.forEach(function (cb) { cb(); }); }
+
+  function openPanel() {
+    var f = comboNorm(input.value);
+    panel.innerHTML = '';
+    var matches = names.filter(function (n) { return comboNorm(n).indexOf(f) !== -1; });
+    matches.slice(0, 300).forEach(function (n) {
+      var it = document.createElement('div');
+      it.className = 'combo-item';
+      it.textContent = n;
+      // mousedown (not click) so it runs before the input's blur.
+      it.addEventListener('mousedown', function (e) { e.preventDefault(); commit(n); });
+      panel.appendChild(it);
+    });
+    panel.style.display = matches.length ? 'block' : 'none';
+  }
+  function closePanel() { panel.style.display = 'none'; }
+
+  function commit(name) { input.value = name; closePanel(); fire(); }
+
+  input.addEventListener('input', function () { openPanel(); fire(); });
+  input.addEventListener('focus', openPanel);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var f = comboNorm(input.value);
+      var m = names.filter(function (n) { return comboNorm(n).indexOf(f) !== -1; });
+      if (m.length) { e.preventDefault(); commit(m[0]); }
+    } else if (e.key === 'Escape') { closePanel(); }
+  });
+  input.addEventListener('blur', function () {
+    // Delay so a dropdown mousedown can commit first.
+    setTimeout(function () {
+      closePanel();
+      if (input.value === '') return;
+      // Already an exact product? Keep it — don't re-fire (and reset the cascade)
+      // just because the field lost focus, e.g. to pick a dose.
+      var exact = names.filter(function (n) { return comboNorm(n) === comboNorm(input.value); });
+      if (exact.length) { if (input.value !== exact[0]) { input.value = exact[0]; fire(); } return; }
+      // Half-typed: snap to the top filtered match (same as pressing Enter);
+      // if nothing matches, clear the invalid text.
+      var f = comboNorm(input.value);
+      var matches = names.filter(function (n) { return comboNorm(n).indexOf(f) !== -1; });
+      input.value = matches.length ? matches[0] : '';
+      fire();
+    }, 150);
+  });
+
+  var api = { wrap: wrap, sel: input };
+  api.setOptions = function (list) { names = (list || []).slice(); input.value = ''; closePanel(); };
+  api.onChange   = function (cb) { cbs.push(cb); };
+
+  wrap.appendChild(lbl);
+  wrap.appendChild(input);
+  wrap.appendChild(panel);
+  return api;
+}
+
 function addMedRow() {
   var container = document.getElementById('med-rows');
   var div = document.createElement('div');
@@ -162,8 +250,8 @@ function addMedRow() {
   forfaitWrap.appendChild(forfaitLabel);
   forfaitWrap.appendChild(forfait);
 
-  // ── Three cascading selects ──
-  var prod = makeSelGroup(tr('lblMedProduct'), 'sel-product', tr('selectMedProduct'));
+  // ── Product picker (type-to-filter) + two cascading selects ──
+  var prod = makeProductCombo(tr('lblMedProduct'), 'sel-product', tr('selectMedProduct'));
   var dose = makeSelGroup(tr('lblMedDose'),    'sel-dose',    tr('selectMedDose'));
   var fmt  = makeSelGroup(tr('lblMedFormat'),  'sel-format',  tr('selectMedFormat'));
   dose.sel.disabled = true;
@@ -176,20 +264,18 @@ function addMedRow() {
   // Source list depends on the Forfaitaire checkbox (forfait stock vs normal stock).
   function currentList() { return rowProducts(forfait.checked); }
 
-  // (Re)populate the product dropdown from the current source and reset the rest.
+  // (Re)populate the product picker from the current source and reset the rest.
   function fillProducts() {
-    prod.sel.innerHTML = '';
-    var def = document.createElement('option'); def.value = ''; def.textContent = tr('selectMedProduct'); prod.sel.appendChild(def);
     var names = [];
     currentList().forEach(function(p) { if (names.indexOf(p.product) === -1) names.push(p.product); });
-    names.sort().forEach(function(name) { var o = document.createElement('option'); o.value = name; o.textContent = name; prod.sel.appendChild(o); });
+    prod.setOptions(names.sort());
     dose.sel.innerHTML = '<option value="">' + tr('selectMedDose') + '</option>';   dose.sel.disabled = true;
     fmt.sel.innerHTML  = '<option value="">' + tr('selectMedFormat') + '</option>'; fmt.sel.disabled  = true;
     priceTag.textContent = '';
   }
 
   // Product → populate doses
-  prod.sel.addEventListener('change', function() {
+  prod.onChange(function() {
     dose.sel.innerHTML = ''; fmt.sel.innerHTML = '';
     var defD = document.createElement('option'); defD.value = ''; defD.textContent = tr('selectMedDose'); dose.sel.appendChild(defD);
     var defF = document.createElement('option'); defF.value = ''; defF.textContent = tr('selectMedFormat'); fmt.sel.appendChild(defF);
