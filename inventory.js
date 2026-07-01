@@ -148,8 +148,8 @@ function createSheetView(cfg) {
       if (noInv) noInv.style.display = 'none';
     }
 
-    buildFamilyFilter();
     buildCategoryFilter();
+    buildFamilyFilter();
     updateStats();
     showTable();
     view.render();
@@ -185,14 +185,21 @@ function createSheetView(cfg) {
     });
   }
 
+  // Families are limited to those present in the currently-selected category.
   function buildFamilyFilter() {
-    var sel = $('family-filter');
+    var sel  = $('family-filter');
+    var cf   = $('category-filter').value;   // 'all' or a specific category
+    var prev = sel.value;                    // keep the current choice if still valid
     while (sel.options.length > 1) sel.remove(1);
     var fams = [];
-    view.products.forEach(function (p) { if (p.famille && fams.indexOf(p.famille) === -1) fams.push(p.famille); });
+    view.products.forEach(function (p) {
+      if (cf !== 'all' && p.category !== cf) return;
+      if (p.famille && fams.indexOf(p.famille) === -1) fams.push(p.famille);
+    });
     fams.sort().forEach(function (f) {
       var o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o);
     });
+    sel.value = (prev && fams.indexOf(prev) !== -1) ? prev : 'all';
   }
 
   // ── Table render ──
@@ -284,7 +291,8 @@ function createSheetView(cfg) {
   (function wire() {
     var si = $('search-input');   if (si) si.addEventListener('input',  view.render);
     var sf = $('stock-filter');   if (sf) sf.addEventListener('change', view.render);
-    var cf = $('category-filter');if (cf) cf.addEventListener('change', view.render);
+    // Changing the category re-scopes the family list, then re-renders.
+    var cf = $('category-filter');if (cf) cf.addEventListener('change', function () { buildFamilyFilter(); view.render(); });
     var ff = $('family-filter');  if (ff) ff.addEventListener('change', view.render);
 
     var table = $('inv-table');
