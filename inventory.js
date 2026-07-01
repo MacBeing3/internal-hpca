@@ -163,11 +163,16 @@ function createSheetView(cfg) {
     $('sv-total').textContent    = n;
     $('sv-low').textContent      = low;
     $('sv-critical').textContent = crit;
-    var cats = [];
-    view.products.forEach(function (p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
-    $('cat-badge').textContent     = cats.join(' · ') || '—';
-    $('meta-products').textContent = n + ' ' + tr('metaProducts');
-    $('meta-updated').textContent  = tr('metaUpdated');
+
+    // Total inventory value = sum of (unit price × current stock) over all meds.
+    var totalValue = 0;
+    view.products.forEach(function (p) {
+      var price = parsePrixUnit(p.prixUnit);
+      if (price !== null && p.stockActuel !== '' && !isNaN(p.stockActuel)) {
+        totalValue += price * p.stockActuel;
+      }
+    });
+    $('meta-value').textContent = 'Valeur totale : ' + Math.round(totalValue).toLocaleString() + ' FCFA';
   }
 
   function buildCategoryFilter() {
