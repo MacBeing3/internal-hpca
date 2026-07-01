@@ -10,57 +10,79 @@ var pendingDelete  = null; // {rowIndex, display}
 
 // ── Load ──────────────────────────────────────────────────────────────────────
 function loadHistorique() {
-  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
-            '/values/' + DISP_SHEET_TAB;
+  var base   = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
+               '/values/' + DISP_SHEET_TAB;
+  var urlFmt = base;                                          // formatted values → display (honours the sheet's date/time format)
+  var urlNum = base + '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER'; // raw values → date/time serials for sort/filter
   histShowState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
   document.getElementById('hist-table-section').style.display = 'none';
   document.getElementById('hist-filter-bar').style.display    = 'none';
 
-  ensureFreshToken(function () {
-    authFetch(url)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
+  // Sheet schema (11 cols): A IsAddition, B Dossier, C Date, D Time, E Product,
+  // F Dose, G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
+  var isHeader = function (r) {
+    return (r[1] || '').toString().toLowerCase().indexOf('dossier') !== -1 ||
+           (r[4] || '').toString().toLowerCase().indexOf('produit') !== -1 ||
+           (r[4] || '').toString().toLowerCase().indexOf('product') !== -1;
+  };
+  var cell = function (r, i) { return (r && r[i] != null ? r[i] : '').toString().trim(); };
 
-            var values = data.values || [];
-            // Sheet schema (11 cols): A IsAddition, B Dossier, C Date, D Time,
-            // E Product, F Dose, G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
-            // skip header row if present
-            var isHeader = function(r) {
-              return (r[1] || '').toLowerCase().includes('dossier') ||
-                    (r[4] || '').toLowerCase().includes('produit') ||
-                    (r[4] || '').toLowerCase().includes('product');
-            };
-            var dataRows = values.filter(function(r) { return r.length >= 5 && !isHeader(r); });
-            if (!dataRows.length) {
-              histShowState('<div style="font-size:32px">⚠️</div><div>' + tr('histErrEmpty') + '</div>');
-              return;
-            }
-            // rowIndex = 1-based sheet row (account for possible header row)
-            var offset = isHeader(values[0]) ? 2 : 1;
-            histRows = dataRows.map(function(r, i) {
-              return {
-                rowIndex:   i + offset,
-                isAddition: (r[0] || '').trim().toUpperCase() === 'TRUE',
-                dossier:    (r[1] || '').trim(),
-                date:       (r[2] || '').trim(),
-                time:       (r[3] || '').trim(),
-                product:    (r[4] || '').trim(),
-                dose:       (r[5] || '').trim(),
-                format:     (r[6] || '').trim(),
-                unitPrice:  (r[7] || '').trim(),
-                qty:        (r[8] || '').trim(),
-                lineTotal:  (r[9] || '').trim(),
-                forfait:    (r[10] || '').trim()
-              };
-            });
-            document.getElementById('hist-filter-bar').style.display = 'flex';
-            histShowTable();
-            renderHistorique();
-          })
-          .catch(function () {
-            histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
+  ensureFreshToken(function () {
+    // Two reads of the same range: one formatted (for display), one unformatted
+    // (numbers) so date/time can be sorted/filtered independently of how the
+    // sheet displays them.
+    Promise.all([
+      authFetch(urlFmt).then(function (res) { return res.json(); }),
+      authFetch(urlNum).then(function (res) { return res.json(); })
+    ])
+      .then(function (results) {
+        var valuesF = (results[0] && results[0].values) || [];  // formatted display strings
+        var valuesN = (results[1] && results[1].values) || [];  // raw values (numbers for real dates/times)
+        histRows = [];
+        for (var i = 0; i < valuesF.length; i++) {
+          var r = valuesF[i];
+          if (!r || r.length < 5 || isHeader(r)) continue;      // skip header / malformed rows
+          var u = valuesN[i] || [];
+          histRows.push({
+            rowIndex:   i + 1,                                  // 1-based sheet row
+            isAddition: cell(r, 0).toUpperCase() === 'TRUE',
+            dossier:    cell(r, 1),
+            date:       cell(r, 2),                             // display, honours the sheet's format
+            time:       cell(r, 3),
+            dateNum:    (typeof u[2] === 'number') ? u[2] : NaN, // serial (format-independent)
+            timeNum:    (typeof u[3] === 'number') ? u[3] : NaN,
+            product:    cell(r, 4),
+            dose:       cell(r, 5),
+            format:     cell(r, 6),
+            unitPrice:  cell(r, 7),
+            qty:        cell(r, 8),
+            lineTotal:  cell(r, 9),
+            forfait:    cell(r, 10)
           });
+        }
+        if (!histRows.length) {
+          histShowState('<div style="font-size:32px">⚠️</div><div>' + tr('histErrEmpty') + '</div>');
+          return;
+        }
+        document.getElementById('hist-filter-bar').style.display = 'flex';
+        histShowTable();
+        renderHistorique();
+      })
+      .catch(function () {
+        histShowState('<div style="font-size:32px">❌</div><div>' + tr('histErrEmpty') + '</div>');
+      });
   });
+}
+
+// Convert a yyyy-mm-dd string (from an <input type=date>) to a Google Sheets serial
+// number, so date-range filtering compares against dateNum regardless of display
+// format. Sheets' serial epoch is 1899-12-30.
+function isoToSerial(iso) {
+  var p = (iso || '').split('-');
+  if (p.length !== 3) return NaN;
+  var ms    = Date.UTC(+p[0], +p[1] - 1, +p[2]);
+  var epoch = Date.UTC(1899, 11, 30);
+  return Math.round((ms - epoch) / 86400000);
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -87,20 +109,42 @@ function renderHistorique() {
   var q        = (document.getElementById('hist-search-dossier').value || '').toLowerCase().trim();
   var dateFrom = document.getElementById('hist-date-from').value;
   var dateTo   = document.getElementById('hist-date-to').value;
+  var fromNum  = dateFrom ? isoToSerial(dateFrom) : null;
+  var toNum    = dateTo   ? isoToSerial(dateTo)   : null;
 
   var rows = histRows.filter(function(r) {
     if (q && !r.dossier.toLowerCase().includes(q)) return false;
-    // date comparison — r.date is stored as typed (e.g. 2026-05-12)
-    if (dateFrom && r.date && r.date < dateFrom) return false;
-    if (dateTo   && r.date && r.date > dateTo)   return false;
+    // Compare by serial number so it works whatever date format the sheet uses.
+    if (fromNum !== null && !isNaN(r.dateNum) && r.dateNum < fromNum) return false;
+    if (toNum   !== null && !isNaN(r.dateNum) && r.dateNum > toNum)   return false;
     return true;
   });
 
   if (histSortCol) {
+    // Date and Heure sort by their serial number (independent of display format);
+    // every other column sorts as text.
+    var num = function (row, col) {
+      if (col === 'date') return isNaN(row.dateNum) ? -Infinity : row.dateNum;
+      if (col === 'time') return isNaN(row.timeNum) ? -Infinity : row.timeNum;
+      return null;
+    };
     rows = rows.slice().sort(function(a, b) {
-      var av = a[histSortCol] || '';
-      var bv = b[histSortCol] || '';
-      return av < bv ? -histSortDir : av > bv ? histSortDir : 0;
+      var an = num(a, histSortCol);
+      if (an !== null) {
+        var bn = num(b, histSortCol);
+        if (an !== bn) return an < bn ? -histSortDir : histSortDir;
+        // Tie-breaker: sorting by date then falls back to heure (same direction),
+        // so the default is date descending, then heure descending.
+        if (histSortCol === 'date') {
+          var at = isNaN(a.timeNum) ? -Infinity : a.timeNum;
+          var bt = isNaN(b.timeNum) ? -Infinity : b.timeNum;
+          if (at !== bt) return at < bt ? -histSortDir : histSortDir;
+        }
+        return 0;
+      }
+      var av = a[histSortCol] || '', bv = b[histSortCol] || '';
+      if (av !== bv) return av < bv ? -histSortDir : histSortDir;
+      return 0;
     });
   }
 

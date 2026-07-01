@@ -45,8 +45,8 @@ thead th:nth-child(19){width:90px}
 /* ── Inventory column widths (Stock Normal #inv-table + Stock Forfaitaire #inv-table-forf) ──
    table-layout is fixed, so these px values directly set each column's width.
    This is the place to tweak spacing by trial-and-error. nth-child = column:
-   1 Produit · 2 Dose · 3 Format · 4 Exp · 5 Stock actuel · 6 Statut
-   · 7 Système · 8 Famille · 9 Cons mens · 10 Mois · 11 Quantité min · 12 Essentiel
+   1 Produit · 2 Dose · 3 Format · 4 Exp · 5 Stock actuel · 6 Statut · 7 Système
+   · 8 Famille · 9 Prix/u · 10 Cons mens · 11 Mois · 12 Quantité min · 13 Essentiel
    (Scoped to the two inventory tables so Historique is unaffected.) */
 #inv-table thead th:nth-child(1),  #inv-table-forf thead th:nth-child(1)  {width:120px} /* Produit      */
 #inv-table thead th:nth-child(2),  #inv-table-forf thead th:nth-child(2)  {width:42px}  /* Dose         */
@@ -56,10 +56,11 @@ thead th:nth-child(19){width:90px}
 #inv-table thead th:nth-child(6),  #inv-table-forf thead th:nth-child(6)  {width:54px}  /* Statut       */
 #inv-table thead th:nth-child(7),  #inv-table-forf thead th:nth-child(7)  {width:35px}  /* Etas Unis    */
 #inv-table thead th:nth-child(8),  #inv-table-forf thead th:nth-child(8)  {width:100px}  /* Famille      */
-#inv-table thead th:nth-child(9),  #inv-table-forf thead th:nth-child(9)  {width:42px}  /* Cons mens    */
-#inv-table thead th:nth-child(10), #inv-table-forf thead th:nth-child(10) {width:36px}  /* Mois         */
-#inv-table thead th:nth-child(11), #inv-table-forf thead th:nth-child(11) {width:62px}  /* Quantité min */
-#inv-table thead th:nth-child(12), #inv-table-forf thead th:nth-child(12) {width:36px}  /* Essentiel    */
+#inv-table thead th:nth-child(9),  #inv-table-forf thead th:nth-child(9)  {width:60px}  /* Prix/u       */
+#inv-table thead th:nth-child(10), #inv-table-forf thead th:nth-child(10) {width:42px}  /* Cons mens    */
+#inv-table thead th:nth-child(11), #inv-table-forf thead th:nth-child(11) {width:36px}  /* Mois         */
+#inv-table thead th:nth-child(12), #inv-table-forf thead th:nth-child(12) {width:62px}  /* Quantité min */
+#inv-table thead th:nth-child(13), #inv-table-forf thead th:nth-child(13) {width:36px}  /* Essentiel    */
 .cat-row td{background:#E6F1FB;color:#0C447C;font-weight:500;font-size:16px;padding:4px 6px;letter-spacing:.05em;border-top:0.5px solid #B5D4F4;border-bottom:0.5px solid #B5D4F4}
 tbody tr{border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
 tbody tr:last-child{border-bottom:none}

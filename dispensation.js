@@ -205,7 +205,9 @@ function addMedRow() {
     doses.forEach(function(d) {
       var o = document.createElement('option'); o.value = d; o.textContent = d || '—'; dose.sel.appendChild(o);
     });
-    if (doses.length === 1) { dose.sel.value = doses[0]; dose.sel.dispatchEvent(new Event('change')); }
+    // Select by index (1 = first real option) not by value, so a single blank
+    // dose ('') selects the real option instead of falling back to the placeholder.
+    if (doses.length === 1) { dose.sel.selectedIndex = 1; dose.sel.dispatchEvent(new Event('change')); }
     else updateTotal();
   });
 
@@ -213,9 +215,13 @@ function addMedRow() {
   dose.sel.addEventListener('change', function() {
     fmt.sel.innerHTML = '';
     var defF = document.createElement('option'); defF.value = ''; defF.textContent = tr('selectMedFormat'); fmt.sel.appendChild(defF);
-    fmt.sel.disabled = !dose.sel.value;
+    // A dose is "chosen" when a real option (index > 0) is selected — even a blank
+    // one. Testing the value would treat an empty dose ('') as "nothing picked"
+    // and wrongly keep the format dropdown disabled even though a format is needed.
+    var doseChosen = dose.sel.selectedIndex > 0;
+    fmt.sel.disabled = !doseChosen;
     priceTag.textContent = '';
-    if (!dose.sel.value) { updateTotal(); return; }
+    if (!doseChosen) { updateTotal(); return; }
 
     var fmts = [];
     currentList().forEach(function(p) {
@@ -224,7 +230,7 @@ function addMedRow() {
     fmts.forEach(function(f) {
       var o = document.createElement('option'); o.value = f; o.textContent = f || '—'; fmt.sel.appendChild(o);
     });
-    if (fmts.length === 1) { fmt.sel.value = fmts[0]; fmt.sel.dispatchEvent(new Event('change')); }
+    if (fmts.length === 1) { fmt.sel.selectedIndex = 1; fmt.sel.dispatchEvent(new Event('change')); }
     else updateTotal();
   });
 

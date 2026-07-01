@@ -94,15 +94,20 @@ function buildMovementRow() {
     doses.forEach(function (d) {
       var o = document.createElement('option'); o.value = d; o.textContent = d || '—'; dose.sel.appendChild(o);
     });
-    if (doses.length === 1) { dose.sel.value = doses[0]; dose.sel.dispatchEvent(new Event('change')); }
+    // Select by index (1 = first real option), so a single blank dose ('') selects
+    // the real option rather than falling back to the placeholder.
+    if (doses.length === 1) { dose.sel.selectedIndex = 1; dose.sel.dispatchEvent(new Event('change')); }
   });
 
   dose.sel.addEventListener('change', function () {
     fmt.sel.innerHTML = '';
     var df = document.createElement('option'); df.value = ''; df.textContent = '-- Format --'; fmt.sel.appendChild(df);
-    fmt.sel.disabled = !dose.sel.value;
+    // "Chosen" = a real option (index > 0), even a blank dose — so an empty dose
+    // still enables the Format dropdown.
+    var doseChosen = dose.sel.selectedIndex > 0;
+    fmt.sel.disabled = !doseChosen;
     priceTag.textContent = '';
-    if (!dose.sel.value) return;
+    if (!doseChosen) return;
 
     var fmts = [];
     list.forEach(function (p) {
@@ -111,7 +116,7 @@ function buildMovementRow() {
     fmts.forEach(function (f) {
       var o = document.createElement('option'); o.value = f; o.textContent = f || '—'; fmt.sel.appendChild(o);
     });
-    if (fmts.length === 1) { fmt.sel.value = fmts[0]; fmt.sel.dispatchEvent(new Event('change')); }
+    if (fmts.length === 1) { fmt.sel.selectedIndex = 1; fmt.sel.dispatchEvent(new Event('change')); }
   });
 
   fmt.sel.addEventListener('change', function () {

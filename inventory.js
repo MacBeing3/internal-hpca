@@ -226,7 +226,7 @@ function createSheetView(cfg) {
     var html = '';
     cats.forEach(function (cat) {
       var catRows = rows.filter(function (p) { return p.category === cat; });
-      if (cat) html += '<tr class="cat-row"><td colspan="12">' + cat + '</td></tr>';
+      if (cat) html += '<tr class="cat-row"><td colspan="13">' + cat + '</td></tr>';
       catRows.forEach(function (p) {
         var s  = getStockStatus(p);
         var rb = s === 'critical' ? 'background:#FFF5F5' : s === 'low' ? 'background:#FFFBF0' : '';
@@ -242,6 +242,7 @@ function createSheetView(cfg) {
           '<td>'  + statusBadge(p) + '</td>' +
           '<td>'  + (p.etatsUnis ? '<span class="badge badge-info">' + p.etatsUnis + '</span>' : '—') + '</td>' +
           '<td>'  + fmt(p.famille)   + '</td>' +
+          '<td class="num-cell">' + fmt(p.prixUnit)   + '</td>' +
           '<td class="num-cell">' + fmt(p.consEstMo)  + '</td>' +
           '<td class="num-cell">' + (p.moRest !== '' ? Number(p.moRest).toFixed(1) : '—') + '</td>' +
           '<td class="num-cell">' + fmt(p.quantMin)   + '</td>' +
@@ -251,7 +252,7 @@ function createSheetView(cfg) {
     });
 
     $('table-body').innerHTML =
-      html || '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
+      html || '<tr><td colspan="13" style="text-align:center;padding:24px;color:var(--color-text-secondary,#6b6b67)">' +
               tr('noResults') + '</td></tr>';
   };
 
