@@ -57,6 +57,7 @@
   <button class="page-tab" id="tab-disp" onclick="showPage('dispensation')">Dispensation</button>
   <button class="page-tab" id="tab-add" onclick="showPage('ajouter')">Ajouter</button>
   <button class="page-tab" id="tab-mvt" onclick="showPage('mouvement')">Mouvement</button>
+  <button class="page-tab" id="tab-mod" onclick="showPage('modification')">Modification</button>
   <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
 
 
@@ -362,6 +363,56 @@
   </div>
 </div>
 
+<!-- ══ MODIFICATION PAGE ══ -->
+<!-- Edit a medication's values with an audit trail. Updates the Pharmacie/Pharm
+     FORF sheet and logs each change to the "Modifications" tab of the Dispensation
+     sheet. Text hardcoded in French. Logic in modification.js. -->
+<div id="page-modification" style="display:none">
+  <div class="disp-page">
+    <h2>Modification du stock</h2>
+
+    <!-- Which stock -->
+    <div class="form-section">
+      <h3>Stock</h3>
+      <div class="form-row" style="gap:24px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="mod-stock" value="normal" checked onchange="setModDirection('normal')"/>
+          <span>Stock Normal</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="radio" name="mod-stock" value="forfait" onchange="setModDirection('forfait')"/>
+          <span>Stock Forfaitaire</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="mod-no-data" class="no-inventory-notice" style="display:none">
+      ⚠️ <span id="mod-no-data-msg">Chargement de l'inventaire…</span>
+    </div>
+
+    <!-- Pick the medication -->
+    <div class="form-section">
+      <h3>Médicament à modifier</h3>
+      <div class="med-row" id="mod-picker" style="align-items:flex-end"></div>
+    </div>
+
+    <!-- Editable values (built by modification.js once a med is selected) -->
+    <div class="form-section" id="mod-fields-section" style="display:none">
+      <h3>Valeurs</h3>
+      <div class="form-row" id="mod-fields"></div>
+    </div>
+
+    <!-- Reason (required) -->
+    <div class="form-section" id="mod-reason-section" style="display:none">
+      <h3>Raison de la modification</h3>
+      <textarea id="mod-reason" rows="2" placeholder="Obligatoire — expliquez la modification"
+        style="width:100%;padding:8px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="submitModification()" id="btn-mod-submit">Confirmer la modification</button>
+  </div>
+</div>
+
 <!-- Delete confirmation modal -->
 <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--color-background-primary,#fff);border-radius:10px;padding:24px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18)">
@@ -389,6 +440,7 @@
 <script src="historique.js"></script>
 <script src="addstock.js"></script>
 <script src="movement.js"></script>
+<script src="modification.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

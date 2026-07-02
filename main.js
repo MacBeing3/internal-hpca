@@ -69,6 +69,7 @@ function showPage(page) {
   document.getElementById('page-forfait').style.display   = page === 'forfait'   ? 'block' : 'none';
   document.getElementById('page-ajouter').style.display   = page === 'ajouter'   ? 'block' : 'none';
   document.getElementById('page-mouvement').style.display = page === 'mouvement' ? 'block' : 'none';
+  document.getElementById('page-modification').style.display = page === 'modification' ? 'block' : 'none';
 
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
@@ -76,6 +77,7 @@ function showPage(page) {
   document.getElementById('tab-forf').classList.toggle('active', page === 'forfait');
   document.getElementById('tab-add').classList.toggle('active',  page === 'ajouter');
   document.getElementById('tab-mvt').classList.toggle('active',  page === 'mouvement');
+  document.getElementById('tab-mod').classList.toggle('active',  page === 'modification');
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
@@ -89,6 +91,12 @@ function showPage(page) {
   if (page === 'mouvement') {
     buildMovementRow();
     refreshMovementSource();
+  }
+
+  if (page === 'modification') {
+    hideModFields();
+    buildModPicker();
+    refreshModSource();
   }
 
 }

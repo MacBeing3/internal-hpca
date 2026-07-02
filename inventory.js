@@ -98,9 +98,16 @@ function createSheetView(cfg) {
       authFetch(url)
         .then(function (res) { return res.json(); })
         .then(function (data) {
-          var dataRows = (data.values || []).filter(function (r) {
-            return r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r);
-          });
+          // Keep each kept row's 1-based sheet position so edits can target the
+          // exact cell (used by the Modification page).
+          var values = data.values || [];
+          var dataRows = [];
+          for (var i = 0; i < values.length; i++) {
+            var r = values[i];
+            if (r.length >= 3 && r[2] && r[2].trim() && !isHeaderRow(r)) {
+              dataRows.push({ cells: r, sheetRow: i + 1 });
+            }
+          }
           processRows(dataRows);
           if (typeof onDone === 'function') onDone();
         })
@@ -116,8 +123,10 @@ function createSheetView(cfg) {
       showState('<div style="font-size:32px">⚠️</div><div>' + tr('errEmpty') + '</div>');
       return;
     }
-    view.products = rows.map(function (r) {
+    view.products = rows.map(function (row) {
+      var r = row.cells;
       return {
+        rowIndex:   row.sheetRow,   // 1-based sheet row, for cell-level edits
         category:   (r[0]  || '').trim(),
         code:       (r[1]  || '').trim(),
         product:    (r[2]  || '').trim(),
