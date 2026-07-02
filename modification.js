@@ -17,7 +17,7 @@ var INV_COL = {
   essentiel:'S', famille:'T'
 };
 
-// Editable fields → { key: product-object property, label: French name }.
+// Editable fields → { key: product-object property, label: French name }. 
 // The sheet column is taken from INV_COL[key] (do NOT hardcode columns here).
 var MOD_FIELDS = [
   { key: 'category',    label: 'Catégorie' },
