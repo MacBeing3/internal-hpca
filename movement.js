@@ -13,6 +13,9 @@ var mvtDirection = 'inv2forf'; // 'inv2forf' = Inventaire -> Forfait, 'forf2inv'
 
 // The source view (where the stock leaves from) for the current direction.
 function mvtSourceView() { return mvtDirection === 'inv2forf' ? inventoryView : forfaitView; }
+// The destination view / sheet tab (where the stock enters).
+function mvtDestView()  { return mvtDirection === 'inv2forf' ? forfaitView : inventoryView; }
+function mvtDestTab()   { return mvtDirection === 'inv2forf' ? SHEET_TAB_FORFAIT : SHEET_TAB; }
 
 // Look up a product-dose-format match within a given products list.
 function findInList(list, product, dose, format) {
@@ -33,6 +36,8 @@ function setMovementDirection(dir) {
 // auto-load it (then rebuild the dropdown) so the user doesn't have to.
 function refreshMovementSource() {
   var src = mvtSourceView();
+  var dst = mvtDestView();
+  if (!dst.loaded) dst.load();   // preload the destination for the submit-time existence check
   var notice = document.getElementById('mvt-no-data');
   var msg    = document.getElementById('mvt-no-data-msg');
   if (msg) {
@@ -138,29 +143,47 @@ function submitMovement() {
   var fmtSel  = document.querySelector('.mvt-sel-format');
   if (!prodSel || !prodSel.value) { showToast('Veuillez sélectionner un médicament.', 'error'); return; }
 
-  var product = prodSel.value;
-  var dose    = doseSel ? doseSel.value : '';
-  var format  = fmtSel  ? fmtSel.value  : '';
-  var p = findInList(list, product, dose, format);
+  var p = findInList(list, prodSel.value, doseSel ? doseSel.value : '', fmtSel ? fmtSel.value : '');
   if (!p) { showToast('Veuillez préciser la dose et le format.', 'error'); return; }
 
   var qty = parseInt(document.getElementById('mvt-qty').value, 10) || 0;
   if (qty <= 0) { showToast('Veuillez saisir une quantité valide.', 'error'); return; }
 
+  var btn = document.getElementById('btn-mvt-submit');
+  btn.disabled = true;
+
+  // Need the destination stock loaded to know whether the med already exists there.
+  var dest = mvtDestView();
+  if (dest.loaded) finishMovement(p, qty, btn);
+  else dest.load(function () { finishMovement(p, qty, btn); });
+}
+
+// Inventaire row (A:T) for a med that must be created in the destination stock.
+// Metadata is copied from the source med; Stock initial = 0 and ledger/computed
+// columns are blank — the quantity comes from the ajouter transaction.
+function buildDestInvRow(m) {
+  var v = function (key) { var x = m[key]; return (x === '' || x === null || x === undefined) ? '' : x; };
+  return [
+    v('category'), v('code'), v('product'), v('dose'), v('format'), v('dateExp'),
+    0, v('pa'), v('prixUnit'), '', '', '', '', '', '', v('quantMin'), '',
+    v('etatsUnis'), v('essentiel'), v('famille')
+  ];
+}
+
+function finishMovement(p, qty, btn) {
+  var product = p.product, dose = p.dose, format = p.format;
   var notedPrice = parsePrixUnit(p.prixUnit);
   if (notedPrice === null) notedPrice = '';
 
   var toForfait = (mvtDirection === 'inv2forf');
-
   // Column K (Forfait): the row touching the forfait pool = 'TRUE', inventaire = 'FALSE'.
   var sourceForfait = toForfait ? 'FALSE' : 'TRUE'; // depense leaves the source pool
   var destForfait   = toForfait ? 'TRUE'  : 'FALSE'; // ajouter enters the destination pool
 
   // Depense price: 0 only when leaving Inventaire toward Forfait ("lost" stock).
   var depensePrice = toForfait ? 0 : notedPrice;
-  var depenseTotal = (depensePrice === '' ) ? '' : depensePrice * qty;
-  // Ajouter always keeps the noted price; its line total is price x qty.
-  var ajouterTotal = (notedPrice === '') ? '' : notedPrice * qty;
+  var depenseTotal = (depensePrice === '') ? '' : depensePrice * qty;
+  var ajouterTotal = (notedPrice === '')  ? '' : notedPrice * qty;
 
   var now = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
@@ -172,13 +195,20 @@ function submitMovement() {
   var depenseRow = ['FALSE', '', date, time, product, dose, format, depensePrice, qty, depenseTotal, sourceForfait];
   var ajouterRow = ['TRUE',  '', date, time, product, dose, format, notedPrice,   qty, ajouterTotal, destForfait];
 
-  var btn = document.getElementById('btn-mvt-submit');
-  btn.disabled = true;
-  appendRowsToSheet([depenseRow, ajouterRow], function (ok, reason) {
+  var tasks = [ { id: DISP_SHEET_ID, tab: DISP_SHEET_TAB, rows: [depenseRow, ajouterRow] } ];
+
+  // If the med doesn't exist in the destination stock, create it there (like a new
+  // medication) so the ajouter transaction has a row to aggregate against. Only do
+  // this when the destination is confirmed loaded, to avoid creating a duplicate.
+  var dest = mvtDestView();
+  if (dest.loaded && !findInList(dest.products, product, dose, format)) {
+    tasks.push({ id: SHEET_ID, tab: mvtDestTab(), rows: [ buildDestInvRow(p) ] });
+  }
+
+  runAppends(tasks, function (ok, reason) {
     if (ok) {
       showToast('Mouvement enregistré avec succès.', 'success');
       document.getElementById('mvt-qty').value = '1';
-      // Reload both stocks (and history) so balances reflect the movement.
       loadInventory();
       loadForfait();
       loadHistorique();

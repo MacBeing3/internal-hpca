@@ -64,7 +64,7 @@ function createSheetView(cfg) {
   var suffix = cfg.suffix || '';
   function $(base) { return document.getElementById(base + suffix); }
 
-  var view = { tab: cfg.tab, products: [], sortCol: null, sortDir: 1 };
+  var view = { tab: cfg.tab, products: [], sortCol: null, sortDir: 1, loaded: false };
 
   // ── UI state helpers ──
   function showState(html) {
@@ -109,6 +109,7 @@ function createSheetView(cfg) {
             }
           }
           processRows(dataRows);
+          view.loaded = true;   // data fetched (even if empty), so lookups are reliable
           if (typeof onDone === 'function') onDone();
         })
         .catch(function () {
