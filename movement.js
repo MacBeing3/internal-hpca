@@ -66,7 +66,9 @@ function buildMovementRow() {
   var container = document.getElementById('mvt-row');
   if (!container) return;
   container.innerHTML = '';
-  var list = mvtSourceView().products;
+  // You can only move FROM meds that are in stock (the destination check later
+  // still uses the full list, so you can move TO a 0-stock med).
+  var list = mvtSourceView().products.filter(hasStock);
 
   var prod = makeProductCombo('Produit', 'mvt-sel-product', '-- Produit --');
   var dose = makeSelGroup('Dose',    'mvt-sel-dose',    '-- Dose --');

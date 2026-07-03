@@ -57,7 +57,10 @@ function getProductByPDF(product, dose, format) {
 // A dispensation line draws from the forfait stock when its Forfaitaire box is
 // checked, otherwise from the normal stock. `products` is the normal (inventory)
 // list; forfaitView.products is the forfait list.
-function rowProducts(forfChecked) { return forfChecked ? forfaitView.products : products; }
+function rowProducts(forfChecked) {
+  // Dispensation only offers meds that are in stock (out-of-stock ones are hidden).
+  return (forfChecked ? forfaitView.products : products).filter(hasStock);
+}
 
 function lookupIn(list, product, dose, format) {
   for (var i = 0; i < list.length; i++) {

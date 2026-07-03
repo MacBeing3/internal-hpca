@@ -29,6 +29,13 @@ function getStockStatus(p) {
   return 'ok';
 }
 
+// A med "has stock" when its current stock is a positive number. Used to hide
+// out-of-stock meds from the tables, Dispensation, and Mouvement's source list
+// (but NOT from Ajouter or a Mouvement destination, where you add to them).
+function hasStock(p) {
+  return p.stockActuel !== '' && !isNaN(p.stockActuel) && p.stockActuel > 0;
+}
+
 function stockBar(p) {
   if (p.stockInit === '' || p.stockActuel === '') return '';
   var pct   = p.stockInit > 0 ? Math.min(100, Math.round(p.stockActuel / p.stockInit * 100)) : 0;
@@ -167,16 +174,17 @@ function createSheetView(cfg) {
 
   // ── Stats & filters ──
   function updateStats() {
-    var n    = view.products.length;
-    var low  = view.products.filter(function (p) { return getStockStatus(p) === 'low';      }).length;
-    var crit = view.products.filter(function (p) { return getStockStatus(p) === 'critical'; }).length;
-    $('sv-total').textContent    = n;
+    // Stats and totals only consider in-stock meds (out-of-stock ones are hidden).
+    var inStock = view.products.filter(hasStock);
+    var low  = inStock.filter(function (p) { return getStockStatus(p) === 'low';      }).length;
+    var crit = inStock.filter(function (p) { return getStockStatus(p) === 'critical'; }).length;
+    $('sv-total').textContent    = inStock.length;
     $('sv-low').textContent      = low;
     $('sv-critical').textContent = crit;
 
-    // Total inventory value = sum of (unit price × current stock) over all meds.
+    // Total inventory value = sum of (unit price × current stock) over in-stock meds.
     var totalValue = 0;
-    view.products.forEach(function (p) {
+    inStock.forEach(function (p) {
       var price = parsePrixUnit(p.prixUnit);
       if (price !== null && p.stockActuel !== '' && !isNaN(p.stockActuel)) {
         totalValue += price * p.stockActuel;
@@ -220,6 +228,7 @@ function createSheetView(cfg) {
     var cf = $('category-filter').value;
 
     var rows = view.products.filter(function (p) {
+      if (!hasStock(p)) return false;   // out-of-stock meds are not shown in the stock table
       var s = getStockStatus(p);
       if (sf !== 'all' && s !== sf) return false;
       if (ff !== 'all' && p.famille  !== ff) return false;
