@@ -109,4 +109,6 @@ function showPage(page) {
 document.getElementById('date-label').textContent =
   new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 setDefaultDateTime();
+// Keep the Dispensation auto date/time in sync with the clock while untouched.
+setInterval(tickDispensationClock, 15000);
 setLang('fr');

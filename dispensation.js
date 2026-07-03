@@ -374,11 +374,30 @@ function addMedRow() {
 }
 
 // ── Date/time defaults ────────────────────────────────────────────────────────
+// Last values we set automatically — used to tell whether the user has since
+// edited the date/time by hand.
+var autoDate = '', autoTime = '';
+
+function nowDateStr() { var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function nowTimeStr() { var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
 function setDefaultDateTime() {
-  var now = new Date();
-  var pad = function(n) { return String(n).padStart(2, '0'); };
-  document.getElementById('inp-date').value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
-  document.getElementById('inp-time').value = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  autoDate = nowDateStr();
+  autoTime = nowTimeStr();
+  document.getElementById('inp-date').value = autoDate;
+  document.getElementById('inp-time').value = autoTime;
+}
+
+// Keep the Dispensation date/time ticking with the clock — but only while they're
+// still "in line" (i.e. the field holds exactly the value we last set, meaning the
+// user hasn't edited it). Once the user changes a field by hand, we leave it alone.
+function tickDispensationClock() {
+  var dEl = document.getElementById('inp-date');
+  var tEl = document.getElementById('inp-time');
+  if (!dEl || !tEl) return;
+  var d = nowDateStr(), t = nowTimeStr();
+  if (dEl.value === autoDate && dEl.value !== d) { dEl.value = d; autoDate = d; }
+  if (tEl.value === autoTime && tEl.value !== t) { tEl.value = t; autoTime = t; }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
