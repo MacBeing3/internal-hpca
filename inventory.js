@@ -92,7 +92,7 @@ function createSheetView(cfg) {
     var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID +
               '/values/' + cfg.tab + '!A:T';
     showState('<div class="spinner"></div><div style="margin-top:12px">Chargement...</div>');
-    hideAll(); 
+    hideAll();
 
     ensureFreshToken(function () {
       authFetch(url)
