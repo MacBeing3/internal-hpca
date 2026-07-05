@@ -18,12 +18,12 @@ function loadHistorique() {
   document.getElementById('hist-table-section').style.display = 'none';
   document.getElementById('hist-filter-bar').style.display    = 'none';
 
-  // Sheet schema (11 cols): A IsAddition, B Dossier, C Date, D Time, E Product,
-  // F Dose, G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
+  // Sheet schema (12 cols): A IsAddition, B Dossier, C Date de Caisse, D Date,
+  // E Time, F Product, G Dose, H Format, I UnitPrice, J Qty, K LineTotal, L Forfait.
   var isHeader = function (r) {
     return (r[1] || '').toString().toLowerCase().indexOf('dossier') !== -1 ||
-           (r[4] || '').toString().toLowerCase().indexOf('produit') !== -1 ||
-           (r[4] || '').toString().toLowerCase().indexOf('product') !== -1;
+           (r[5] || '').toString().toLowerCase().indexOf('produit') !== -1 ||
+           (r[5] || '').toString().toLowerCase().indexOf('product') !== -1;
   };
   var cell = function (r, i) { return (r && r[i] != null ? r[i] : '').toString().trim(); };
 
@@ -41,23 +41,24 @@ function loadHistorique() {
         histRows = [];
         for (var i = 0; i < valuesF.length; i++) {
           var r = valuesF[i];
-          if (!r || r.length < 5 || isHeader(r)) continue;      // skip header / malformed rows
+          if (!r || r.length < 6 || isHeader(r)) continue;      // skip header / malformed rows
           var u = valuesN[i] || [];
           histRows.push({
             rowIndex:   i + 1,                                  // 1-based sheet row
             isAddition: cell(r, 0).toUpperCase() === 'TRUE',
             dossier:    cell(r, 1),
-            date:       cell(r, 2),                             // display, honours the sheet's format
-            time:       cell(r, 3),
-            dateNum:    (typeof u[2] === 'number') ? u[2] : NaN, // serial (format-independent)
-            timeNum:    (typeof u[3] === 'number') ? u[3] : NaN,
-            product:    cell(r, 4),
-            dose:       cell(r, 5),
-            format:     cell(r, 6),
-            unitPrice:  cell(r, 7),
-            qty:        cell(r, 8),
-            lineTotal:  cell(r, 9),
-            forfait:    cell(r, 10)
+            dateCaisse: cell(r, 2),                             // Date de Caisse (dispensations only)
+            date:       cell(r, 3),                             // display, honours the sheet's format
+            time:       cell(r, 4),
+            dateNum:    (typeof u[3] === 'number') ? u[3] : NaN, // serial (format-independent)
+            timeNum:    (typeof u[4] === 'number') ? u[4] : NaN,
+            product:    cell(r, 5),
+            dose:       cell(r, 6),
+            format:     cell(r, 7),
+            unitPrice:  cell(r, 8),
+            qty:        cell(r, 9),
+            lineTotal:  cell(r, 10),
+            forfait:    cell(r, 11)
           });
         }
         if (!histRows.length) {

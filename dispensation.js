@@ -378,29 +378,41 @@ function addMedRow() {
 
 // ── Date/time defaults ────────────────────────────────────────────────────────
 // Last values we set automatically — used to tell whether the user has since
-// edited the date/time by hand.
-var autoDate = '', autoTime = '';
+// edited the date/time/caisse by hand.
+var autoDate = '', autoTime = '', autoCaisse = '';
 
 function nowDateStr() { var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function nowTimeStr() { var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-
-function setDefaultDateTime() {
-  autoDate = nowDateStr();
-  autoTime = nowTimeStr();
-  document.getElementById('inp-date').value = autoDate;
-  document.getElementById('inp-time').value = autoTime;
+// "Date de Caisse": the accounting day starts at 16:00 (4 PM) the previous day, so
+// anything from 4 PM onward already counts as the next day's caisse.
+function cashDateStr() {
+  var d = new Date();
+  if (d.getHours() >= 16) d = new Date(d.getTime() + 86400000);
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
 
-// Keep the Dispensation date/time ticking with the clock — but only while they're
-// still "in line" (i.e. the field holds exactly the value we last set, meaning the
-// user hasn't edited it). Once the user changes a field by hand, we leave it alone.
+function setDefaultDateTime() {
+  autoDate   = nowDateStr();
+  autoTime   = nowTimeStr();
+  autoCaisse = cashDateStr();
+  document.getElementById('inp-date').value = autoDate;
+  document.getElementById('inp-time').value = autoTime;
+  var c = document.getElementById('inp-datecaisse'); if (c) c.value = autoCaisse;
+}
+
+// Keep the Dispensation date/time/caisse ticking with the clock — but only while
+// each is still "in line" (holds exactly the value we last set, i.e. the user
+// hasn't edited it). Once the user edits a field by hand, we leave it alone.
 function tickDispensationClock() {
   var dEl = document.getElementById('inp-date');
   var tEl = document.getElementById('inp-time');
+  var cEl = document.getElementById('inp-datecaisse');
   if (!dEl || !tEl) return;
-  var d = nowDateStr(), t = nowTimeStr();
+  var d = nowDateStr(), t = nowTimeStr(), c = cashDateStr();
   if (dEl.value === autoDate && dEl.value !== d) { dEl.value = d; autoDate = d; }
   if (tEl.value === autoTime && tEl.value !== t) { tEl.value = t; autoTime = t; }
+  if (cEl && cEl.value === autoCaisse && cEl.value !== c) { cEl.value = c; autoCaisse = c; }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -413,10 +425,11 @@ function showToast(msg, type) {
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 function submitDispensation() {
-  var dossier = document.getElementById('inp-dossier').value.trim();
-  var date    = document.getElementById('inp-date').value;
-  var time    = document.getElementById('inp-time').value;
-  if (!dossier || !date || !time) { showToast(tr('toastValidate'), 'error'); return; }
+  var dossier    = document.getElementById('inp-dossier').value.trim();
+  var dateCaisse = document.getElementById('inp-datecaisse').value;
+  var date       = document.getElementById('inp-date').value;
+  var time       = document.getElementById('inp-time').value;
+  if (!dossier || !dateCaisse || !date || !time) { showToast(tr('toastValidate'), 'error'); return; }
 
   var medRows = document.getElementById('med-rows').children;
   if (!medRows.length) { showToast(tr('toastNoMeds'), 'error'); return; }
@@ -442,12 +455,12 @@ function submitDispensation() {
     var qtyVal    = parseInt(qty.value) || 0;
     var lineTotal = unitVal !== null ? unitVal * qtyVal : '';
 
-    // Dispensation sheet schema (11 cols): A IsAddition (FALSE = dispensation),
-    // B Dossier, C Date, D Time, E Product, F Dose, G Format, H UnitPrice, I Qty,
-    // J LineTotal, K Forfait. Stock additions (Add-stock tab) write 'TRUE' in col A.
+    // Dispensation sheet schema (12 cols): A IsAddition (FALSE = dispensation),
+    // B Dossier, C Date de Caisse, D Date, E Time, F Product, G Dose, H Format,
+    // I UnitPrice, J Qty, K LineTotal, L Forfait. Additions write 'TRUE' in col A.
     rows.push([
       'FALSE',
-      dossier, date, time,
+      dossier, dateCaisse, date, time,
       selProd.value,
       selDose.value,
       selFmt.value,
