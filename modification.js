@@ -29,7 +29,7 @@ var MOD_FIELDS = [
   { key: 'change',      label: 'Pertes' },
   { key: 'consEstMo',   label: 'Cons mens' },
   { key: 'quantMin',    label: 'Quantité min' },
-  { key: 'etatsUnis',   label: 'Système' },
+  { key: 'etatsUnis',   label: 'Etas Unis/Togo' },
   { key: 'essentiel',   label: 'Essentiel' },
   { key: 'famille',     label: 'Famille' }
 ];
