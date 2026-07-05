@@ -46,7 +46,7 @@ function setLang(l) {
   document.getElementById('lbl-hist-to').textContent         = tr('lblHistTo');
   document.getElementById('btn-hist-clear').textContent      = tr('btnHistClear');
   document.getElementById('hist-search-dossier').placeholder = tr('histSearchPlaceholder');
-  var histCols = ['Type','Dossier','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
+  var histCols = ['Type','Dossier','DateCaisse','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
   histCols.forEach(function(c) {
     var el = document.getElementById('hh-' + c.toLowerCase());
     if (el) el.childNodes[0].textContent = tr('hh' + c) + ' ';

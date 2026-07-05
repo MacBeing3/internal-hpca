@@ -35,9 +35,9 @@ thead th{color:#fff;font-weight:500;font-size:10px;text-transform:uppercase;lett
 thead th:last-child{border-right:none}
 thead th:hover{background:#0C447C}
 thead th:nth-child(1){width:38px}thead th:nth-child(2){width:90px}thead th:nth-child(3){width:38px}
-thead th:nth-child(4){width:38px}thead th:nth-child(5){width:52px}thead th:nth-child(6){width:48px}
+thead th:nth-child(4){width:38px}thead th:nth-child(5){width:52px}thead th:nth-child(6){width:90px}
 thead th:nth-child(7){width:28px}thead th:nth-child(8){width:62px}thead th:nth-child(9){width:42px}
-thead th:nth-child(10){width:36px}thead th:nth-child(11){width:68px}thead th:nth-child(12){width:52px}
+thead th:nth-child(10){width:36px}thead th:nth-child(11){width:68px}thead th:nth-child(12){width:32px}
 thead th:nth-child(13){width:48px}thead th:nth-child(14){width:44px}thead th:nth-child(15){width:38px}
 thead th:nth-child(16){width:68px}thead th:nth-child(17){width:34px}thead th:nth-child(18){width:44px}
 thead th:nth-child(19){width:90px}
@@ -66,12 +66,14 @@ tbody tr{border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,.12))}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--color-background-secondary,#f0efe8)}
 tbody td{padding:5px;vertical-align:middle;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.code-cell{color:var(--color-text-secondary,#6b6b67);font-size:10px;font-weight:500}
+.code-cell{color:var(--color-text-secondary,#6b6b67);font-size:16px;font-weight:500;padding-left:10px}
 .product-cell{font-weight:500}
 .num-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .badge{display:block;width:fit-content;margin:0 auto;padding:1px 5px;border-radius:4px;font-size:12px;font-weight:500}
-.badge-ok{background:#EAF3DE;color:#27500A}.badge-warn{background:#FAEEDA;color:#633806}
-.badge-danger{background:#FCEBEB;color:#791F1F}.badge-info{background:#E6F1FB;color:#0C447C}
+.badge-ok{background:#EAF3DE;color:#27500A}
+.badge-warn{background:#FAEEDA;color:#633806}
+.badge-danger{background:#FCEBEB;color:#791F1F}
+.badge-info{background:#E6F1FB;color:#0C447C}
 .badge-neutral{background:#F1EFE8;color:#444441}
 .stock-bar-wrap{width:36px;display:inline-block;vertical-align:middle;margin-left:10px}
 .stock-bar{height:5px;border-radius:3px;background:#D3D1C7}

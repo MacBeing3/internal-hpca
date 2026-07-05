@@ -160,6 +160,7 @@ function renderHistorique() {
     html += '<tr>' +
       '<td style="text-align:center">' + typeBadge + '</td>' +
       '<td class="code-cell">'  + fmt(r.dossier)   + '</td>' +
+      '<td>'                    + fmt(r.dateCaisse)       + '</td>' +
       '<td>'                    + fmt(r.date)       + '</td>' +
       '<td>'                    + fmt(r.time)       + '</td>' +
       '<td class="product-cell">'+ fmt(r.product)  + '</td>' +
