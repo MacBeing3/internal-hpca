@@ -193,8 +193,9 @@ function ensureStockLoadedForAjouter() {
 function submitAddStock() {
   var now = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
-  var date = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
-  var time = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var date   = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  var time   = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var caisse = cashDateStr();   // Date de Caisse (col C)
 
   var transactions = []; // existing meds -> Dispensation sheet (ajouter rows)
   var normalInv    = []; // new meds -> Pharmacie (Stock Normal)
@@ -217,7 +218,7 @@ function submitAddStock() {
     var lt = (up === '') ? '' : up * qa;
     // Schema (11 cols): A IsAddition, B Dossier, C Date, D Time, E Product, F Dose,
     // G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
-    transactions.push(['TRUE', '', date, time, p.product, p.dose, p.format, up, qa, lt, forf ? 'TRUE' : 'FALSE']);
+    transactions.push(['TRUE', '', caisse, date, time, p.product, p.dose, p.format, up, qa, lt, forf ? 'TRUE' : 'FALSE']);
   }
 
   // ── New medications ──
@@ -240,7 +241,7 @@ function submitAddStock() {
     var invRow = ['', '', product, dose, format, '', 0, '', np, '', '', '', '', '', '', '', '', '', '', ''];
     if (nForf) forfaitInv.push(invRow); else normalInv.push(invRow);
     var nlt = (np === '') ? '' : np * qn;
-    transactions.push(['TRUE', '', date, time, product, dose, format, np, qn, nlt, nForf ? 'TRUE' : 'FALSE']);
+    transactions.push(['TRUE', '', caisse, date, time, product, dose, format, np, qn, nlt, nForf ? 'TRUE' : 'FALSE']);
   }
 
   if (!transactions.length && !normalInv.length && !forfaitInv.length) {

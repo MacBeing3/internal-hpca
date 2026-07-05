@@ -189,13 +189,14 @@ function finishMovement(p, qty, btn) {
 
   var now = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
-  var date = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
-  var time = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var date   = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  var time   = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var caisse = cashDateStr();
 
-  // Schema (11 cols): A IsAddition, B Dossier, C Date, D Time, E Product, F Dose,
-  // G Format, H UnitPrice, I Qty, J LineTotal, K Forfait.
-  var depenseRow = ['FALSE', '', date, time, product, dose, format, depensePrice, qty, depenseTotal, sourceForfait];
-  var ajouterRow = ['TRUE',  '', date, time, product, dose, format, notedPrice,   qty, ajouterTotal, destForfait];
+  // Schema (12 cols): A IsAddition, B Dossier, C Date de Caisse, D Date, E Time,
+  // F Product, G Dose, H Format, I UnitPrice, J Qty, K LineTotal, L Forfait.
+  var depenseRow = ['FALSE', '', caisse, date, time, product, dose, format, depensePrice, qty, depenseTotal, sourceForfait];
+  var ajouterRow = ['TRUE',  '', caisse, date, time, product, dose, format, notedPrice,   qty, ajouterTotal, destForfait];
 
   var tasks = [ { id: DISP_SHEET_ID, tab: DISP_SHEET_TAB, rows: [depenseRow, ajouterRow] } ];
 
@@ -203,21 +204,55 @@ function finishMovement(p, qty, btn) {
   // medication) so the ajouter transaction has a row to aggregate against. Only do
   // this when the destination is confirmed loaded, to avoid creating a duplicate.
   var dest = mvtDestView();
-  if (dest.loaded && !findInList(dest.products, product, dose, format)) {
+  var newRowCreated = dest.loaded && !findInList(dest.products, product, dose, format);
+  if (newRowCreated) {
     tasks.push({ id: SHEET_ID, tab: mvtDestTab(), rows: [ buildDestInvRow(p) ] });
   }
 
+  var user      = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.email : '';
+  var direction = toForfait ? 'Inventaire → Forfait' : 'Forfait → Inventaire';
+  // Log row: Date, Heure, Utilisateur, Direction, Produit, Dose, Format, Quantité, Nouvelle ligne.
+  var logRow = [date, time, user, direction, product, dose, format, qty, newRowCreated ? 'TRUE' : 'FALSE'];
+
   runAppends(tasks, function (ok, reason) {
-    if (ok) {
-      showToast('Mouvement enregistré avec succès.', 'success');
+    if (!ok) {
+      showToast(reason === 'forbidden' ? MSG_NO_WRITE_ACCESS : 'Erreur lors du mouvement. Veuillez réessayer.', 'error');
+      btn.disabled = false;
+      return;
+    }
+    // Movement applied — now record it in the Mouvements log.
+    appendMvtLog(logRow, function (ok2, reason2) {
+      if (ok2) {
+        showToast('Mouvement enregistré avec succès.', 'success');
+      } else {
+        showToast(reason2 === 'forbidden' ? MSG_NO_WRITE_ACCESS
+          : 'Mouvement appliqué, mais le journal a échoué (vérifiez l\'onglet « Mouvements »).', 'error');
+      }
       document.getElementById('mvt-qty').value = '1';
       loadInventory();
       loadForfait();
       loadHistorique();
       buildMovementRow();
-    } else {
-      showToast(reason === 'forbidden' ? MSG_NO_WRITE_ACCESS : 'Erreur lors du mouvement. Veuillez réessayer.', 'error');
-    }
-    btn.disabled = false;
+      btn.disabled = false;
+    });
+  });
+}
+
+// ── Mouvements audit log (a tab in the Dispensation sheet) ──
+var MVT_LOG_HEADER = ['Date', 'Heure', 'Utilisateur', 'Direction', 'Produit', 'Dose', 'Format', 'Quantité', 'Nouvelle ligne'];
+
+// Append a movement log row, writing the header first if the tab is empty.
+function appendMvtLog(logRow, callback) {
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + DISP_SHEET_ID +
+            '/values/' + encodeURIComponent('Mouvements');
+  ensureFreshToken(function () {
+    authFetch(url)
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+      .then(function (r) {
+        var hasRows  = r.ok && r.data && r.data.values && r.data.values.length > 0;
+        var toAppend = hasRows ? [logRow] : [MVT_LOG_HEADER, logRow];
+        appendValues(DISP_SHEET_ID, 'Mouvements', toAppend, callback);
+      })
+      .catch(function () { appendValues(DISP_SHEET_ID, 'Mouvements', [logRow], callback); });
   });
 }
