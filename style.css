@@ -143,3 +143,8 @@ select.filter-sel{padding:6px 10px;border:0.5px solid var(--color-border-seconda
 .combo-item:hover{background:#E6F1FB}
 .med-select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
 .med-select:disabled{opacity:.45;cursor:not-allowed}
+
+/* Auto-update banner (see updater.js) — fixed bottom-right, non-blocking */
+#update-banner{position:fixed;right:20px;bottom:20px;z-index:400;display:flex;align-items:center;gap:12px;background:#185FA5;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.22);font-size:13px}
+#update-banner button{padding:5px 12px;border:none;border-radius:6px;background:#fff;color:#185FA5;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+#update-banner button:hover{background:#E6F1FB}
