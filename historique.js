@@ -106,14 +106,14 @@ function clearHistFilters() {
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderHistorique() {
-  var q        = (document.getElementById('hist-search-dossier').value || '').toLowerCase().trim();
+  var q        = normalize(document.getElementById('hist-search-dossier').value).trim();
   var dateFrom = document.getElementById('hist-date-from').value;
   var dateTo   = document.getElementById('hist-date-to').value;
   var fromNum  = dateFrom ? isoToSerial(dateFrom) : null;
   var toNum    = dateTo   ? isoToSerial(dateTo)   : null;
 
   var rows = histRows.filter(function(r) {
-    if (q && !r.dossier.toLowerCase().includes(q)) return false;
+    if (q && !normalize(r.dossier).includes(q)) return false;
     // Compare by serial number so it works whatever date format the sheet uses.
     if (fromNum !== null && !isNaN(r.dateNum) && r.dateNum < fromNum) return false;
     if (toNum   !== null && !isNaN(r.dateNum) && r.dateNum > toNum)   return false;

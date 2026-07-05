@@ -21,6 +21,13 @@ function parseNum(v) {
 
 function fmt(v) { return (v === '' || v === null || v === undefined) ? '—' : v; }
 
+// Lowercase + strip accents, so search is accent-insensitive
+// (e.g. "tre" matches "tretinoine"). NFD splits accented letters into a base
+// letter + combining mark, then we drop the combining marks (U+0300-U+036F).
+function normalize(v) {
+  return (v || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function getStockStatus(p) {
   if (p.moRest !== '' && p.moRest <= 1) return 'critical';
   if (p.moRest !== '' && p.moRest < 6)  return 'low';
@@ -198,7 +205,7 @@ function createSheetView(cfg) {
     while (sel.options.length > 1) sel.remove(1);
     var cats = [];
     view.products.forEach(function (p) { if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
-    cats.sort().forEach(function (c) {
+    cats.sort(function (a, b) { return a.localeCompare(b, 'fr', { sensitivity: 'base' }); }).forEach(function (c) {
       var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
     });
   }
@@ -214,7 +221,7 @@ function createSheetView(cfg) {
       if (cf !== 'all' && p.category !== cf) return;
       if (p.famille && fams.indexOf(p.famille) === -1) fams.push(p.famille);
     });
-    fams.sort().forEach(function (f) {
+    fams.sort(function (a, b) { return a.localeCompare(b, 'fr', { sensitivity: 'base' }); }).forEach(function (f) {
       var o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o);
     });
     sel.value = (prev && fams.indexOf(prev) !== -1) ? prev : 'all';
@@ -222,7 +229,7 @@ function createSheetView(cfg) {
 
   // ── Table render ──
   view.render = function () {
-    var q  = ($('search-input').value || '').toLowerCase();
+    var q  = normalize($('search-input').value);
     var sf = $('stock-filter').value;
     var ff = $('family-filter').value;
     var cf = $('category-filter').value;
@@ -233,7 +240,7 @@ function createSheetView(cfg) {
       if (sf !== 'all' && s !== sf) return false;
       if (ff !== 'all' && p.famille  !== ff) return false;
       if (cf !== 'all' && p.category !== cf) return false;
-      if (q && !(p.code + ' ' + p.product + ' ' + p.dose + ' ' + p.famille).toLowerCase().includes(q)) return false;
+      if (q && !normalize(p.code + ' ' + p.product + ' ' + p.dose + ' ' + p.famille).includes(q)) return false;
       return true;
     });
 
