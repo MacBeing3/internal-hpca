@@ -341,7 +341,7 @@ function createSheetView(cfg) {
 var inventoryView = createSheetView({ tab: SHEET_TAB,         suffix: '',      syncGlobal: true });
 var forfaitView   = createSheetView({ tab: SHEET_TAB_FORFAIT, suffix: '-forf'                    });
 
-// ── Legacy shims (called from auth.js, dispensation.js, historique.js, HTML) ──────
+// ── Legacy shims (called from dispensation.js, historique.js, HTML) ──────
 function loadInventory() { inventoryView.load(); }
 function loadForfait()   { forfaitView.load(); }
 function renderTable()   { inventoryView.render(); }

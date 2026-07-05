@@ -59,6 +59,7 @@
   <button class="page-tab" id="tab-mvt" onclick="showPage('mouvement')">Mouvement</button>
   <button class="page-tab" id="tab-mod" onclick="showPage('modification')">Modification</button>
   <button class="page-tab" id="tab-hist" onclick="showPage('historique')">Historique</button>
+  <button class="page-tab" id="tab-form" onclick="showPage('formulaire')">Formulaire</button>
 
 
 </div>
@@ -290,6 +291,50 @@
   </div>
 </div>
 
+<!-- ══ FORMULAIRE PAGE ══ -->
+<!-- Read-only drug formulary from the "ORDRE ALPHA" tab of a separate spreadsheet
+     (cols A-G: Produit, Doses, Formats, Système, Famille, Posologie, Conseil).
+     Same search + Système/Famille filters as Stock Normal, but no stock-status
+     filter; rows grouped under Système headings. Logic in formulaire.js. -->
+<div id="page-formulaire" style="display:none">
+  <div class="sheet-bar">
+    <button class="file-btn" onclick="loadFormulaire()" id="charger-form">Charger le formulaire</button>
+  </div>
+  <div class="filter-bar" id="form-filter-bar" style="display:none">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="form-search-input" placeholder="Rechercher..."/>
+    </div>
+    <select class="filter-sel" id="form-systeme-filter">
+      <option value="all">Tous les systèmes</option>
+    </select>
+    <select class="filter-sel" id="form-famille-filter">
+      <option value="all">Toutes familles</option>
+    </select>
+  </div>
+  <div id="form-state">
+    <div class="state-box">
+      <div style="font-size:32px">📋</div>
+      <div>Cliquez sur "Charger le formulaire" pour commencer.</div>
+    </div>
+  </div>
+  <div class="table-wrap" id="form-table-section" style="display:none">
+    <table id="form-table" style="table-layout:fixed">
+      <thead>
+        <tr>
+          <th data-col="product">Produit ↕</th>
+          <th data-col="doses">Doses ↕</th>
+          <th data-col="formats">Formats ↕</th>
+          <th data-col="famille">Famille ↕</th>
+          <th data-col="posologie">Posologie ↕</th>
+          <th data-col="conseil">Conseil ↕</th>
+        </tr>
+      </thead>
+      <tbody id="form-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
 <!-- ══ AJOUTER (ADD STOCK) PAGE ══ -->
 <!-- Two sections, each with multiple rows (like Dispensation). Existing meds write
      an 'ajouter' transaction (A=TRUE) to the Dispensation sheet; new meds are
@@ -446,6 +491,7 @@
 <script src="addstock.js"></script>
 <script src="movement.js"></script>
 <script src="modification.js"></script>
+<script src="formulaire.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

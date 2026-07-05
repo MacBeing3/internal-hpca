@@ -58,9 +58,11 @@ function handleTokenResponse(response) {
     currentUser = { email: info.email, name: info.name, picture: info.picture };
     updateUserUI();
     hideAuthOverlay();
-    loadInventory();
-    loadForfait();
+    inventoryView.load();
+    forfaitView.load();
+    formulaireView.load();
     loadHistorique();
+    
   });
 }
 

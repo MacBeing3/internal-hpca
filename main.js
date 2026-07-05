@@ -70,6 +70,7 @@ function showPage(page) {
   document.getElementById('page-ajouter').style.display   = page === 'ajouter'   ? 'block' : 'none';
   document.getElementById('page-mouvement').style.display = page === 'mouvement' ? 'block' : 'none';
   document.getElementById('page-modification').style.display = page === 'modification' ? 'block' : 'none';
+  document.getElementById('page-formulaire').style.display   = page === 'formulaire'   ? 'block' : 'none';
 
   document.getElementById('tab-inv').classList.toggle('active',  page === 'inventory');
   document.getElementById('tab-disp').classList.toggle('active', page === 'dispensation');
@@ -78,6 +79,7 @@ function showPage(page) {
   document.getElementById('tab-add').classList.toggle('active',  page === 'ajouter');
   document.getElementById('tab-mvt').classList.toggle('active',  page === 'mouvement');
   document.getElementById('tab-mod').classList.toggle('active',  page === 'modification');
+  document.getElementById('tab-form').classList.toggle('active', page === 'formulaire');
 
   if (page === 'dispensation') {
     document.getElementById('disp-no-inv').style.display = products.length ? 'none' : 'block';
