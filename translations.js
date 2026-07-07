@@ -12,7 +12,7 @@ var T = {
     slCritical:'Stock critique',
 
     // Filters
-    fAll:'Tous les stocks',
+    fAll:'Statut',
     fOk:'Stock OK',
     fLow:'Stock faible',
     fCritical:'Stock critique',
@@ -129,7 +129,7 @@ var T = {
     slCritical:'Critical stock',
 
     // Filters
-    fAll:'All stock levels',
+    fAll:'Status',
     fOk:'Stock OK',
     fLow:'Low stock',
     fCritical:'Critical stock',
