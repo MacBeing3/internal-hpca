@@ -183,7 +183,7 @@
   <div class="filter-bar" id="hist-filter-bar" style="display:none">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" id="hist-search-dossier" placeholder="Filtrer par dossier..."/>
+      <input type="text" id="hist-search-dossier" placeholder="Rechercher (dossier, produit, dose, format)..."/>
     </div>
     <div class="form-group" style="flex:0 0 auto;flex-direction:row;align-items:center;gap:6px;padding-bottom:4px">
       <label id="lbl-hist-from" style="font-size:12px;white-space:nowrap">Du :</label>
@@ -223,6 +223,9 @@
       </thead>
       <tbody id="hist-table-body"></tbody>
     </table>
+    <div style="text-align:center;padding:12px">
+      <button class="file-btn" onclick="loadPreviousHistDay()" id="btn-hist-more" style="display:none">Charger le jour précédent</button>
+    </div>
   </div>
 </div>
 
