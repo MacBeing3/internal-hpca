@@ -46,6 +46,7 @@ function setLang(l) {
   document.getElementById('lbl-hist-to').textContent         = tr('lblHistTo');
   document.getElementById('btn-hist-clear').textContent      = tr('btnHistClear');
   document.getElementById('hist-search-dossier').placeholder = tr('histSearchPlaceholder');
+  document.getElementById('btn-hist-more').textContent       = tr('btnHistMore');
   var histCols = ['Type','Dossier','DateCaisse','Date','Time','Product','Dose','Format','UnitPrice','Qty','Total','Forfait'];
   histCols.forEach(function(c) {
     var el = document.getElementById('hh-' + c.toLowerCase());
@@ -113,6 +114,7 @@ function showPage(page) {
 document.getElementById('date-label').textContent =
   new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 setDefaultDateTime();
-// Keep the Dispensation auto date/time in sync with the clock while untouched.
-setInterval(tickDispensationClock, 15000);
+// Keep the Dispensation auto date/time (and Historique's default caisse range) in
+// sync with the clock while untouched.
+setInterval(function () { tickDispensationClock(); tickHistCaisse(); }, 15000);
 setLang('fr');
