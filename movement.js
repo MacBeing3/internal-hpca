@@ -79,9 +79,22 @@ function buildMovementRow() {
   var priceTag = document.createElement('span');
   priceTag.className = 'unit-price-tag';
 
+  // Cap the quantity at the selected med's source stock. With no complete
+  // product-dose-format selection there is nothing to cap against, so drop the max.
+  var qty = document.getElementById('mvt-qty');
+  function applyStockCap() {
+    var p = findInList(list, prod.sel.value, dose.sel.value, fmt.sel.value);
+    if (!p) { qty.removeAttribute('max'); return; }
+    qty.max = String(p.stockActuel);
+    if ((parseInt(qty.value, 10) || 0) > p.stockActuel) qty.value = String(p.stockActuel);
+  }
+  // Assigned (not addEventListener) since the row is rebuilt but the input is static.
+  qty.onchange = applyStockCap;
+
   var names = [];
   list.forEach(function (p) { if (names.indexOf(p.product) === -1) names.push(p.product); });
   prod.setOptions(names.sort());
+  applyStockCap();
 
   prod.onChange(function () {
     dose.sel.innerHTML = ''; fmt.sel.innerHTML = '';
@@ -90,6 +103,7 @@ function buildMovementRow() {
     dose.sel.disabled = !prod.sel.value;
     fmt.sel.disabled  = true;
     priceTag.textContent = '';
+    applyStockCap();
     if (!prod.sel.value) return;
 
     var doses = [];
@@ -112,6 +126,7 @@ function buildMovementRow() {
     var doseChosen = dose.sel.selectedIndex > 0;
     fmt.sel.disabled = !doseChosen;
     priceTag.textContent = '';
+    applyStockCap();
     if (!doseChosen) return;
 
     var fmts = [];
@@ -128,6 +143,7 @@ function buildMovementRow() {
     var p   = findInList(list, prod.sel.value, dose.sel.value, fmt.sel.value);
     var raw = p ? p.prixUnit || '' : '';
     priceTag.textContent = raw ? 'Prix/u : ' + raw : '';
+    applyStockCap();
   });
 
   container.appendChild(prod.wrap);
@@ -150,6 +166,7 @@ function submitMovement() {
 
   var qty = parseInt(document.getElementById('mvt-qty').value, 10) || 0;
   if (qty <= 0) { showToast('Veuillez saisir une quantité valide.', 'error'); return; }
+  if (qty > p.stockActuel) { showToast('La quantité dépasse le stock disponible (' + p.stockActuel + ').', 'error'); return; }
 
   var btn = document.getElementById('btn-mvt-submit');
   btn.disabled = true;

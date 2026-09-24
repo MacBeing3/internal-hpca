@@ -91,7 +91,9 @@ function showPage(page) {
   }
 
   if (page === 'mouvement') {
-    buildMovementRow();
+    // Only build the row the first time, so a picked product-dose-format survives
+    // switching tabs (like Dispensation). Direction changes and submits rebuild it.
+    if (document.getElementById('mvt-row').children.length === 0) buildMovementRow();
     refreshMovementSource();
   }
 
