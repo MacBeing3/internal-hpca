@@ -267,6 +267,16 @@ function addMedRow() {
   // Source list depends on the Forfaitaire checkbox (forfait stock vs normal stock).
   function currentList() { return rowProducts(forfait.checked); }
 
+  // Cap the quantity at the selected med's current stock. With no complete
+  // product-dose-format selection there is nothing to cap against, so drop the max.
+  function applyStockCap() {
+    if (!qty) return; // qty input is created further down; first fillProducts() runs before it exists
+    var p = lookupIn(currentList(), prod.sel.value, dose.sel.value, fmt.sel.value);
+    if (!p) { qty.removeAttribute('max'); return; }
+    qty.max = String(p.stockActuel);
+    if ((parseInt(qty.value) || 0) > p.stockActuel) qty.value = String(p.stockActuel);
+  }
+
   // (Re)populate the product picker from the current source and reset the rest.
   function fillProducts() {
     var names = [];
@@ -275,6 +285,7 @@ function addMedRow() {
     dose.sel.innerHTML = '<option value="">' + tr('selectMedDose') + '</option>';   dose.sel.disabled = true;
     fmt.sel.innerHTML  = '<option value="">' + tr('selectMedFormat') + '</option>'; fmt.sel.disabled  = true;
     priceTag.textContent = '';
+    applyStockCap();
   }
 
   // Product → populate doses
@@ -285,6 +296,7 @@ function addMedRow() {
     dose.sel.disabled = !prod.sel.value;
     fmt.sel.disabled  = true;
     priceTag.textContent = '';
+    applyStockCap();
     if (!prod.sel.value) { updateTotal(); return; }
 
     var doses = [];
@@ -310,6 +322,7 @@ function addMedRow() {
     var doseChosen = dose.sel.selectedIndex > 0;
     fmt.sel.disabled = !doseChosen;
     priceTag.textContent = '';
+    applyStockCap();
     if (!doseChosen) { updateTotal(); return; }
 
     var fmts = [];
@@ -328,6 +341,7 @@ function addMedRow() {
     var p   = lookupIn(currentList(), prod.sel.value, dose.sel.value, fmt.sel.value);
     var raw = p ? p.prixUnit || '' : '';
     priceTag.textContent = raw ? tr('lblUnitPrice') + ' ' + raw : '';
+    applyStockCap();
     updateTotal();
   });
 
@@ -353,7 +367,7 @@ function addMedRow() {
   var qty = document.createElement('input');
   qty.type = 'number'; qty.min = '1'; qty.value = '1'; qty.className = 'med-qty';
   qty.style.cssText = 'padding:6px 4px;border:0.5px solid var(--color-border-secondary,rgba(0,0,0,.3));border-radius:6px;background:var(--color-background-primary,#fff);font-size:12px;font-family:inherit;width:100%';
-  qty.addEventListener('change', updateTotal);
+  qty.addEventListener('change', function() { applyStockCap(); updateTotal(); });
   qtyWrap.appendChild(qtyLabel);
   qtyWrap.appendChild(qty);
 
@@ -437,6 +451,7 @@ function submitDispensation() {
   var rows   = [];
   var valid  = true;
   var errMsg = 'toastValidate';
+  var used   = {}; // qty per med (+ stock source) summed across rows, to check against stock
   for (var i = 0; i < medRows.length; i++) {
     var selProd = medRows[i].querySelector('.sel-product');
     var selDose = medRows[i].querySelector('.sel-dose');
@@ -454,6 +469,11 @@ function submitDispensation() {
     var unitVal   = parsePrixUnit(p ? p.prixUnit : '');
     var qtyVal    = parseInt(qty.value) || 0;
     var lineTotal = unitVal !== null ? unitVal * qtyVal : '';
+
+    // Never dispense more than is in stock, even across several rows of the same med.
+    var key = [forfait.checked, p.product, p.dose, p.format].join('|');
+    used[key] = (used[key] || 0) + qtyVal;
+    if (used[key] > p.stockActuel) { valid = false; errMsg = 'toastOverStock'; break; }
 
     // Dispensation sheet schema (12 cols): A IsAddition (FALSE = dispensation),
     // B Dossier, C Date de Caisse, D Date, E Time, F Product, G Dose, H Format,
