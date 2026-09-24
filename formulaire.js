@@ -189,7 +189,12 @@ var formulaireView = (function () {
     }
   })();
 
-  return { load: load, render: render };
+  return {
+    load: load, render: render,
+    // Parsed rows, read by addstock.js to populate the new-medication dropdowns.
+    get products() { return rows; },
+    get loaded()   { return loaded; }
+  };
 })();
 
 // Legacy shim (called from the "Charger le formulaire" button in index.html).
